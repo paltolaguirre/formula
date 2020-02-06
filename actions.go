@@ -26,7 +26,7 @@ func Healthy(writer http.ResponseWriter, request *http.Request) {
 
 func FunctionList(w http.ResponseWriter, r *http.Request) {
 
-	var tipo = r.URL.Query()["type"]
+	//var tipo = r.URL.Query()["type"]
 
 	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
 	if tokenValido {
@@ -38,11 +38,11 @@ func FunctionList(w http.ResponseWriter, r *http.Request) {
 
 		var functions []structFunction.Function
 
-		if tipo != nil {
+		/*if tipo != nil {
 			db.Set("gorm:auto_preload", true).Where("type = ?", tipo).Find(&functions)
-		} else {
-			db.Set("gorm:auto_preload", true).Find(&functions)
-		}
+		} else {*/
+		db.Set("gorm:auto_preload", true).Find(&functions)
+		//}
 
 		framework.RespondJSON(w, http.StatusOK, functions)
 	}
