@@ -3,14 +3,13 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/xubiosueldos/autenticacion/apiclientautenticacion"
 	"github.com/xubiosueldos/conexionBD"
-	"github.com/xubiosueldos/conexionBD/Formula/structFormula"
+	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"github.com/xubiosueldos/framework"
 )
 
@@ -25,7 +24,7 @@ func Healthy(writer http.ResponseWriter, request *http.Request) {
 	writer.Write([]byte("Healthy"))
 }
 
-func FormulaList(w http.ResponseWriter, r *http.Request) {
+func FunctionList(w http.ResponseWriter, r *http.Request) {
 
 	var tipo = r.URL.Query()["type"]
 
@@ -37,59 +36,53 @@ func FormulaList(w http.ResponseWriter, r *http.Request) {
 
 		defer conexionBD.CerrarDB(db)
 
-		var formulas []structFormula.Formula
+		var functions []structFunction.Function
 
 		if tipo != nil {
-			db.Set("gorm:auto_preload", true).Where("type = ?", tipo).Find(&formulas)
+			db.Set("gorm:auto_preload", true).Where("type = ?", tipo).Find(&functions)
 		} else {
-			db.Set("gorm:auto_preload", true).Find(&formulas)
+			db.Set("gorm:auto_preload", true).Find(&functions)
 		}
 
-		framework.RespondJSON(w, http.StatusOK, formulas)
+		framework.RespondJSON(w, http.StatusOK, functions)
 	}
 
 }
 
-func FormulaShow(w http.ResponseWriter, r *http.Request) {
+func FunctionShow(w http.ResponseWriter, r *http.Request) {
 
 	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
 	if tokenValido {
-
 		params := mux.Vars(r)
-		formulaId := params["id"]
+		functionName := params["id"]
 
-		var formulaData structFormula.FormulaWrapper
-		var formulaPersistence structFormula.Formula //Con &var --> lo que devuelve el metodo se le asigna a la var
+		var function structFunction.Function //Con &var --> lo que devuelve el metodo se le asigna a la var
+
 		tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
 		db := conexionBD.ObtenerDB(tenant)
-
 		defer conexionBD.CerrarDB(db)
 
 		//gorm:auto_preload se usa para que complete todos los struct con su informacion
-		if err := db.Set("gorm:auto_preload", true).First(&formulaPersistence, "id = ?", formulaId).Error; gorm.IsRecordNotFoundError(err) {
+		if err := db.Set("gorm:auto_preload", true).First(&function, "name = ?", functionName).Error; gorm.IsRecordNotFoundError(err) {
 			framework.RespondError(w, http.StatusNotFound, err.Error())
 			return
 		}
 
-		formulaData.GormModel = formulaPersistence.GormModel
-		json.Unmarshal([]byte(formulaPersistence.Value), &formulaData.FormulaPrime)
-
-		framework.RespondJSON(w, http.StatusOK, formulaData)
+		framework.RespondJSON(w, http.StatusOK, function)
 	}
 
 }
 
-func FormulaAdd(w http.ResponseWriter, r *http.Request) {
+func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 
 	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
 	if tokenValido {
 
-		var formulaData structFormula.FormulaWrapper
-		var formulaPersistence structFormula.Formula
-		var formulaPrime structFormula.FormulaPrime
 		decoder := json.NewDecoder(r.Body)
 
-		if err := decoder.Decode(&formulaPrime); err != nil {
+		var functionData structFunction.Function
+
+		if err := decoder.Decode(&functionData); err != nil {
 			framework.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -101,38 +94,33 @@ func FormulaAdd(w http.ResponseWriter, r *http.Request) {
 
 		defer conexionBD.CerrarDB(db)
 
-		jsonValue, _ := json.Marshal(formulaPrime)
-		formulaPersistence.Value = string(jsonValue)
-		if err := db.Create(&formulaPersistence).Error; err != nil {
+		if err := db.Create(&functionData).Error; err != nil {
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		formulaData.GormModel = formulaPersistence.GormModel
-		json.Unmarshal([]byte(formulaPersistence.Value), &formulaData.FormulaPrime)
-
-		framework.RespondJSON(w, http.StatusCreated, formulaData)
+		framework.RespondJSON(w, http.StatusCreated, functionData)
 	}
+
 }
 
-func FormulaUpdate(w http.ResponseWriter, r *http.Request) {
+func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 
 	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
 	if tokenValido {
 
 		params := mux.Vars(r)
 		//se convirtió el string en int para poder comparar
-		paramFormulaid, _ := strconv.ParseInt(params["id"], 10, 64)
-		p_formulaid := int(paramFormulaid)
+		pFunctionName := params["id"]
 
-		if p_formulaid == 0 {
+		if pFunctionName == "" {
 			framework.RespondError(w, http.StatusNotFound, framework.IdParametroVacio)
 			return
 		}
 
 		decoder := json.NewDecoder(r.Body)
 
-		var formulaData structFormula.Formula
+		var formulaData structFunction.Function
 
 		if err := decoder.Decode(&formulaData); err != nil {
 			framework.RespondError(w, http.StatusBadRequest, err.Error())
@@ -140,11 +128,11 @@ func FormulaUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 		defer r.Body.Close()
 
-		formulaid := formulaData.ID
+		functionName := formulaData.Name
 
-		if p_formulaid == formulaid || formulaid == 0 {
+		if pFunctionName == functionName || functionName == "" {
 
-			formulaData.ID = p_formulaid
+			formulaData.Name = pFunctionName
 
 			tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
 			db := conexionBD.ObtenerDB(tenant)
@@ -166,32 +154,31 @@ func FormulaUpdate(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func FormulaRemove(w http.ResponseWriter, r *http.Request) {
+func FunctionRemove(w http.ResponseWriter, r *http.Request) {
 
 	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
 	if tokenValido {
 
 		//Para obtener los parametros por la url
 		params := mux.Vars(r)
-		formulaId := params["id"]
+		functionName := params["id"]
 
 		tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
 		db := conexionBD.ObtenerDB(tenant)
 		defer conexionBD.CerrarDB(db)
 
 		//--Borrado Fisico
-		if err := db.Unscoped().Where("id = ?", formulaId).Delete(structFormula.Formula{}).Error; err != nil {
-
+		if err := db.Unscoped().Where("name = ?", functionName).Delete(structFunction.Function{}).Error; err != nil {
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		framework.RespondJSON(w, http.StatusOK, framework.Formula+formulaId+framework.MicroservicioEliminado)
+		framework.RespondJSON(w, http.StatusOK, framework.Function+functionName+framework.MicroservicioEliminado)
 	}
 
 }
 
-func FormulaRemoveMasivo(w http.ResponseWriter, r *http.Request) {
+func FunctionRemoveMasivo(w http.ResponseWriter, r *http.Request) {
 	var resultadoDeEliminacion = make(map[int]string)
 	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
 	if tokenValido {
@@ -211,13 +198,12 @@ func FormulaRemoveMasivo(w http.ResponseWriter, r *http.Request) {
 
 		if len(idsEliminar.Ids) > 0 {
 			for i := 0; i < len(idsEliminar.Ids); i++ {
-				formulaId := idsEliminar.Ids[i]
-				if err := db.Unscoped().Where("id = ?", formulaId).Delete(structFormula.Formula{}).Error; err != nil {
+				functionName := idsEliminar.Ids[i]
+				if err := db.Unscoped().Where("name = ?", functionName).Delete(structFunction.Function{}).Error; err != nil {
 					//framework.RespondError(w, http.StatusInternalServerError, err.Error())
-					resultadoDeEliminacion[formulaId] = string(err.Error())
-
+					resultadoDeEliminacion[i] = string(err.Error())
 				} else {
-					resultadoDeEliminacion[formulaId] = "Fue eliminado con exito"
+					resultadoDeEliminacion[i] = "Fue eliminado con exito"
 				}
 			}
 		} else {
