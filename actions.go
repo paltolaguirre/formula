@@ -159,7 +159,7 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			err := deleteValue(formula.Value, tx)
+			err := createValue(formulaData.Value, tx)
 			if err != nil {
 				tx.Rollback()
 				framework.RespondError(w, http.StatusInternalServerError, err.Error())
@@ -167,6 +167,12 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if err := tx.Save(&formulaData).Error; err != nil {
+				tx.Rollback()
+				framework.RespondError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			if err := deleteValue(formula.Value, tx); err != nil {
 				tx.Rollback()
 				framework.RespondError(w, http.StatusInternalServerError, err.Error())
 				return
@@ -265,16 +271,19 @@ func FunctionRemoveMasivo(w http.ResponseWriter, r *http.Request) {
 
 func createValue(value *structFunction.Value, db *gorm.DB) error {
 	if value.Valueinvoke != nil {
+		value.Valueinvoke.ID = 0
 		for i := 0; i < len(value.Valueinvoke.Args); i++ {
 			err := createValue(&value.Valueinvoke.Args[i], db)
 			if err != nil {
 				return err
 			}
 		}
+	}
 
-		if err := db.Create(&value).Error; err != nil {
-			return err
-		}
+	// para asegurarse que siempre se cree un nuevo Value
+	value.ID = 0
+	if err := db.Create(&value).Error; err != nil {
+		return err
 	}
 
 	return nil
