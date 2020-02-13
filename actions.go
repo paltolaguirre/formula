@@ -11,6 +11,7 @@ import (
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"github.com/xubiosueldos/framework"
+	"github.com/xubiosueldos/novedad/executor"
 )
 
 type IdsAEliminar struct {
@@ -308,4 +309,38 @@ func deleteValue(value *structFunction.Value, db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func FunctionExecute(w http.ResponseWriter, r *http.Request) {
+
+	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
+	if tokenValido {
+
+		decoder := json.NewDecoder(r.Body)
+
+		var invokeData structFunction.Invoke
+
+		if err := decoder.Decode(&invokeData); err != nil {
+			framework.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		defer r.Body.Close()
+
+		tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
+		db := conexionBD.ObtenerDB(tenant)
+
+		defer conexionBD.CerrarDB(db)
+
+		myExecutor := executor.NewExecutor(db, invokeData)
+		value, err := myExecutor.GetValue()
+
+		if err != nil {
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		framework.RespondJSON(w, http.StatusCreated, value)
+	}
+
 }

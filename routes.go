@@ -72,4 +72,10 @@ var routes = Routes{
 		"/api/formula/formulas",
 		FunctionRemoveMasivo,
 	},
+	Route{
+		"FunctionExecute",
+		"POST",
+		"/api/formula/execute",
+		FunctionExecute,
+	},
 }
