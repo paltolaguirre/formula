@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"git-codecommit.us-east-1.amazonaws.com/v1/repos/sueldos-formula/executor"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -11,7 +12,6 @@ import (
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"github.com/xubiosueldos/framework"
-	"github.com/xubiosueldos/novedad/executor"
 )
 
 type IdsAEliminar struct {
@@ -332,7 +332,7 @@ func FunctionExecute(w http.ResponseWriter, r *http.Request) {
 
 		defer conexionBD.CerrarDB(db)
 
-		myExecutor := executor.NewExecutor(db, invokeData)
+		myExecutor := executor.NewExecutor(db, &invokeData)
 		value, err := myExecutor.GetValue()
 
 		if err != nil {
