@@ -332,8 +332,8 @@ func FunctionExecute(w http.ResponseWriter, r *http.Request) {
 
 		defer conexionBD.CerrarDB(db)
 
-		myExecutor := executor.NewExecutor(db, &invokeData)
-		value, err := myExecutor.GetValue()
+		myExecutor := executor.NewExecutor(db)
+		value, err := myExecutor.GetValueFromInvoke(&invokeData)
 
 		if err != nil {
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
