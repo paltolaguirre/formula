@@ -43,6 +43,19 @@ func (executor *Executor) GetParam(paramName string) int64 {
 	return result
 }
 
+func (executor *Executor) GetValueResolved(value *structFunction.Value) (*structFunction.Value, error) {
+	if value.Valueinvoke == nil {
+		return value, nil
+	} else {
+		valueResolved, err := executor.GetValueFromInvoke(value.Valueinvoke)
+		if err != nil {
+			return nil, err
+		}
+
+		return valueResolved, nil
+	}
+}
+
 func (executor *Executor) GetValueFromInvoke(invoke *structFunction.Invoke) (*structFunction.Value, error) {
 
 	var function structFunction.Function
@@ -71,22 +84,13 @@ func (executor *Executor) GetValueFromInvoke(invoke *structFunction.Invoke) (*st
 		//formula de usurio
 		argsResolved := make([]structFunction.Value, len(function.Params))
 		for i := 0; i < len(function.Params); i++ {
-			var valueResolved *structFunction.Value
-			//var err error
-			if invoke.Args[i].Valueinvoke == nil {
-				valueResolved = &invoke.Args[i]
-			} else {
-				valueResolved, err = executor.GetValueFromInvoke(invoke.Args[i].Valueinvoke)
-				if err != nil {
-					return nil, err
-				}
+			valueResolved, err := executor.GetValueResolved(&invoke.Args[i])
+			if err != nil {
+				return nil, err
 			}
+			valueResolved.Name = function.Params[i].Name
 
-			switch function.Params[i].Type {
-			case "number":
-				argsResolved[i].Name = function.Params[i].Name
-				argsResolved[i].Valuenumber = valueResolved.Valuenumber
-			}
+			argsResolved[i] = *valueResolved
 		}
 
 		// Push on Stack

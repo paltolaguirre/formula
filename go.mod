@@ -1,4 +1,4 @@
-module github.com/xubiosueldos/novedad
+module git-codecommit.us-east-1.amazonaws.com/v1/repos/sueldos-formula
 
 go 1.12
 
