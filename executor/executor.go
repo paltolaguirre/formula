@@ -67,7 +67,7 @@ func (executor *Executor) GetValueFromInvoke(invoke *structFunction.Invoke) (*st
 	}
 
 	if function.Origin == "primitive" {
-		results, err := call(function, invoke.Args)
+		results, err := executor.call(function, invoke.Args)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func (executor *Executor) GetValueFromInvoke(invoke *structFunction.Invoke) (*st
 	return nil, nil
 }
 
-func call(function structFunction.Function, args []structFunction.Value) (result []reflect.Value, err error) {
+func (executor *Executor) call(function structFunction.Function, args []structFunction.Value) (result []reflect.Value, err error) {
 	myClassValue := reflect.ValueOf(&Executor{})
 	m := myClassValue.MethodByName(function.Name)
 	if !m.IsValid() {
@@ -117,14 +117,23 @@ func call(function structFunction.Function, args []structFunction.Value) (result
 	//f := reflect.ValueOf(function.Name)
 	if len(args) != m.Type().NumIn() {
 		err = errors.New("The number of params is not adapted.")
-		return
+		return nil, err
 	}
 	in := make([]reflect.Value, len(args))
 	for k, arg := range args {
-		value := arg.Valuenumber
+		valueResolved, err := executor.GetValueResolved(&arg)
+		if err != nil {
+			return nil, err
+		}
+		paramType := m.Type().In(k).Name()
+		var value interface{}
+		if paramType == "string" {
+			value = valueResolved.Valuestring
+		} else {
+			value = valueResolved.Valuenumber
+		}
 		in[k] = reflect.ValueOf(value)
-
 	}
 	result = m.Call(in)
-	return
+	return result, nil
 }
