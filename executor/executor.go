@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -19,30 +20,6 @@ func NewExecutor(db *gorm.DB) *Executor {
 	executor.db = db
 	executor.stack = [][]structFunction.Value{}
 	return executor
-}
-
-func (executor *Executor) Sum(val1 int64, val2 int64) int64 {
-	return val1 + val2
-}
-
-func (executor *Executor) Diff(val1 int64, val2 int64) int64 {
-	return val1 - val2
-}
-
-func (executor *Executor) GetParamValue(paramName string) int64 {
-	length := len(executor.stack)
-	var result int64 = 0
-	if length > 0 {
-		argsResolved := executor.stack[length-1]
-		for i := 0; i < len(argsResolved); i++ {
-			if argsResolved[i].Name == paramName {
-				result = argsResolved[i].Valuenumber
-				break
-			}
-		}
-	}
-
-	return result
 }
 
 func (executor *Executor) GetValueResolved(value *structFunction.Value) (*structFunction.Value, error) {
@@ -131,11 +108,19 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 		}
 		paramType := m.Type().In(k).Name()
 		var value interface{}
-		if paramType == "string" {
-			value = valueResolved.Valuestring
-		} else {
+		switch paramType {
+		case "int64":
 			value = valueResolved.Valuenumber
+		case "string":
+			value = valueResolved.Valuestring
+		default:
+			jsonbody, err := json.Marshal(valueResolved.Valueobject)
+			if err != nil {
+				return nil, err
+			}
+			value = jsonbody
 		}
+
 		in[k] = reflect.ValueOf(value)
 	}
 	result = m.Call(in)
