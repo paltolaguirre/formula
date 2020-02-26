@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"git-codecommit.us-east-1.amazonaws.com/v1/repos/sueldos-formula/executor"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -308,4 +309,38 @@ func deleteValue(value *structFunction.Value, db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func FunctionExecute(w http.ResponseWriter, r *http.Request) {
+
+	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
+	if tokenValido {
+
+		decoder := json.NewDecoder(r.Body)
+
+		var invokeData structFunction.Invoke
+
+		if err := decoder.Decode(&invokeData); err != nil {
+			framework.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		defer r.Body.Close()
+
+		tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
+		db := conexionBD.ObtenerDB(tenant)
+
+		defer conexionBD.CerrarDB(db)
+
+		myExecutor := executor.NewExecutor(db)
+		value, err := myExecutor.GetValueFromInvoke(&invokeData)
+
+		if err != nil {
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		framework.RespondJSON(w, http.StatusCreated, value)
+	}
+
 }
