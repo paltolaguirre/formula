@@ -8,9 +8,9 @@ type ContextLiquidacion struct {
 	Currentliquidacion structLiquidacion.Liquidacion `json:"currentliquidacion"`
 }
 
-func (executor *Executor) GetParamValue(paramName string) int64 {
+func (executor *Executor) GetParamValue(paramName string) float64 {
 	length := len(executor.stack)
-	var result int64 = 0
+	var result float64 = 0
 	if length > 0 {
 		argsResolved := executor.stack[length-1]
 		for i := 0; i < len(argsResolved); i++ {
@@ -24,15 +24,15 @@ func (executor *Executor) GetParamValue(paramName string) int64 {
 	return result
 }
 
-func (executor *Executor) Sum(val1 int64, val2 int64) int64 {
+func (executor *Executor) Sum(val1 float64, val2 float64) float64 {
 	return val1 + val2
 }
 
-func (executor *Executor) Diff(val1 int64, val2 int64) int64 {
+func (executor *Executor) Diff(val1 float64, val2 float64) float64 {
 	return val1 - val2
 }
 
-func (executor *Executor) TotalImporteRemunerativo() int64 {
+func (executor *Executor) TotalImporteRemunerativo() float64 {
 	//context := ContextLiquidacion{}
 	/*context, ok := (*executor.context).(ContextLiquidacion)
 
@@ -55,5 +55,5 @@ func (executor *Executor) TotalImporteRemunerativo() int64 {
 		}
 	}
 
-	return int64(total)
+	return float64(total)
 }

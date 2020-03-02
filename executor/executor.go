@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -46,7 +45,7 @@ func (executor *Executor) GetValueResolved(value *structFunction.Value) (*struct
 func (executor *Executor) GetValueFromInvoke(invoke *structFunction.Invoke) (*structFunction.Value, error) {
 
 	var function structFunction.Function
-	valueResult := new(structFunction.Value)
+	//valueResult := new(structFunction.Value)
 
 	//gorm:auto_preload se usa para que complete todos los struct con su informacion
 	if err := executor.db.Set("gorm:auto_preload", true).First(&function, "name = ?", invoke.Functionname).Error; gorm.IsRecordNotFoundError(err) {
@@ -54,15 +53,12 @@ func (executor *Executor) GetValueFromInvoke(invoke *structFunction.Invoke) (*st
 	}
 
 	if function.Origin == "primitive" {
-		results, err := executor.call(function, invoke.Args)
+		valueResult, err := executor.call(function, invoke.Args)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(results) == 1 {
-			valueResult.Valuenumber = results[0].Int()
-			return valueResult, nil
-		}
+		return valueResult, nil
 	} else {
 		// Formula de usuario
 
@@ -97,11 +93,11 @@ func (executor *Executor) GetValueFromInvoke(invoke *structFunction.Invoke) (*st
 	return nil, nil
 }
 
-func (executor *Executor) call(function structFunction.Function, args []structFunction.Value) (result []reflect.Value, err error) {
+func (executor *Executor) call(function structFunction.Function, args []structFunction.Value) (result *structFunction.Value, err error) {
 	myClassValue := reflect.ValueOf(executor)
 	m := myClassValue.MethodByName(function.Name)
 	if !m.IsValid() {
-		return make([]reflect.Value, 0), fmt.Errorf("Method not found \"%s\"", function.Name)
+		return nil, fmt.Errorf("Method not found \"%s\"", function.Name)
 	}
 	//f := reflect.ValueOf(function.Name)
 	if len(args) != m.Type().NumIn() {
@@ -117,20 +113,26 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 		paramType := m.Type().In(k).Name()
 		var value interface{}
 		switch paramType {
-		case "int64":
+		case "float64":
 			value = valueResolved.Valuenumber
 		case "string":
 			value = valueResolved.Valuestring
-		default:
+			/*default:
 			jsonbody, err := json.Marshal(valueResolved.Valueobject)
 			if err != nil {
 				return nil, err
 			}
-			value = jsonbody
+			value = jsonbody*/
 		}
 
 		in[k] = reflect.ValueOf(value)
 	}
-	result = m.Call(in)
+	results := m.Call(in)
+
+	if len(results) == 1 {
+		result.Valuenumber = results[0].Float()
+		return result, nil
+	}
+
 	return result, nil
 }
