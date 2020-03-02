@@ -8,17 +8,25 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
+	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 )
 
 type Executor struct {
-	db    *gorm.DB
-	stack [][]structFunction.Value
+	db      *gorm.DB
+	stack   [][]structFunction.Value
+	context *Context //[]byte
 }
 
-func NewExecutor(db *gorm.DB) *Executor {
+type Context struct {
+	Currentliquidacion structLiquidacion.Liquidacion `json:"currentliquidacion"`
+}
+
+func NewExecutor(db *gorm.DB, context *Context) *Executor {
 	var executor *Executor = new(Executor)
 	executor.db = db
 	executor.stack = [][]structFunction.Value{}
+	executor.context = context
+
 	return executor
 }
 
