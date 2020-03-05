@@ -103,18 +103,23 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		db := conexionBD.ObtenerDB(tenant)
 
 		defer conexionBD.CerrarDB(db)
+		//abro una transacción para que si hay un error no persista en la DB
+		tx := db.Begin()
 
-		/*err := createValue(functionData.Value, db)
+		/*err := createValue(functionData.Value, tx)
 		if err != nil {
+			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}*/
 
-		if err := db.Create(&functionData).Error; err != nil {
+		if err := tx.Create(&functionData).Error; err != nil {
+			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
+		tx.Commit()
 		framework.RespondJSON(w, http.StatusCreated, functionData)
 	}
 

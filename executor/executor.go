@@ -129,8 +129,20 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 	}
 	results := m.Call(in)
 
+	result = new(structFunction.Value)
 	if len(results) == 1 {
-		result.Valuenumber = results[0].Float()
+		paramType := m.Type().Out(0).Name()
+		switch paramType {
+		case "float64":
+			val := results[0]
+			result.Valuenumber = val.Float()
+		case "string":
+			result.Valuestring = results[0].String()
+		case "bool":
+			val := results[0]
+			result.Valueboolean = val.Bool()
+		}
+
 		return result, nil
 	}
 
