@@ -57,3 +57,12 @@ func (executor *Executor) TotalImporteRemunerativo() float64 {
 
 	return float64(total)
 }
+
+/* comparison operators */
+func (executor *Executor) Greater(val1 float64, val2 float64) bool {
+	return val1 > val2
+}
+
+func (executor *Executor) GreaterEqual(val1 float64, val2 float64) bool {
+	return val1 >= val2
+}
