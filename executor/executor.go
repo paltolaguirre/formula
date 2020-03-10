@@ -117,6 +117,8 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 			value = valueResolved.Valuenumber
 		case "string":
 			value = valueResolved.Valuestring
+		case "bool":
+			value = valueResolved.Valueboolean
 			/*default:
 			jsonbody, err := json.Marshal(valueResolved.Valueobject)
 			if err != nil {
