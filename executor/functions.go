@@ -50,6 +50,14 @@ func (executor *Executor) TotalImporteRemunerativo() float64 {
 	return float64(total)
 }
 
+func (executor *Executor) If(expression bool, valueTrue float64, valueFalse float64) float64 {
+	if expression {
+		return valueTrue
+	}
+
+	return valueFalse
+}
+
 /* Comparison operators */
 func (executor *Executor) Equality(val1 float64, val2 float64) bool {
 	return val1 == val2
