@@ -24,6 +24,18 @@ func (executor *Executor) GetParamValue(paramName string) float64 {
 	return result
 }
 
+func (executor *Executor) GetConceptValue(id float64) float64 {
+	liquidacion := executor.context.Currentliquidacion
+
+	for _, item := range liquidacion.Liquidacionitems {
+		if item.Concepto.ID == int(id) {
+			return *item.Importeunitario
+		}
+	}
+
+	return 0
+}
+
 func (executor *Executor) TotalImporteRemunerativo() float64 {
 	//context := ContextLiquidacion{}
 	/*context, ok := (*executor.context).(ContextLiquidacion)
