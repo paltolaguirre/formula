@@ -10,6 +10,11 @@ import (
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 )
 
+type FormulaExecute struct {
+	structFunction.Invoke
+	Context Context `json:"context"`
+}
+
 type Executor struct {
 	db      *gorm.DB
 	stack   [][]structFunction.Value

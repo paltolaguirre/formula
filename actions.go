@@ -18,11 +18,6 @@ type IdsAEliminar struct {
 	Ids []int `json:"ids"`
 }
 
-type FormulaExecute struct {
-	structFunction.Invoke
-	Context executor.Context `json:"context"`
-}
-
 var nombreMicroservicio string = "formula"
 
 // Sirve para controlar si el server esta OK
@@ -328,7 +323,7 @@ func FunctionExecute(w http.ResponseWriter, r *http.Request) {
 
 		decoder := json.NewDecoder(r.Body)
 
-		var formulaExecuteData FormulaExecute
+		var formulaExecuteData executor.FormulaExecute
 
 		if err := decoder.Decode(&formulaExecuteData); err != nil {
 			framework.RespondError(w, http.StatusBadRequest, err.Error())
