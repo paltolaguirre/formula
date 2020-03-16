@@ -18,6 +18,11 @@ type IdsAEliminar struct {
 	Ids []int `json:"ids"`
 }
 
+type FormulaExecute struct {
+	structFunction.Invoke
+	Context executor.Context `json:"context"`
+}
+
 var nombreMicroservicio string = "formula"
 
 // Sirve para controlar si el server esta OK
@@ -98,18 +103,23 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		db := conexionBD.ObtenerDB(tenant)
 
 		defer conexionBD.CerrarDB(db)
+		//abro una transacción para que si hay un error no persista en la DB
+		tx := db.Begin()
 
-		/*err := createValue(functionData.Value, db)
+		/*err := createValue(functionData.Value, tx)
 		if err != nil {
+			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}*/
 
-		if err := db.Create(&functionData).Error; err != nil {
+		if err := tx.Create(&functionData).Error; err != nil {
+			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
+		tx.Commit()
 		framework.RespondJSON(w, http.StatusCreated, functionData)
 	}
 
@@ -318,9 +328,9 @@ func FunctionExecute(w http.ResponseWriter, r *http.Request) {
 
 		decoder := json.NewDecoder(r.Body)
 
-		var invokeData structFunction.Invoke
+		var formulaExecuteData FormulaExecute
 
-		if err := decoder.Decode(&invokeData); err != nil {
+		if err := decoder.Decode(&formulaExecuteData); err != nil {
 			framework.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -332,8 +342,8 @@ func FunctionExecute(w http.ResponseWriter, r *http.Request) {
 
 		defer conexionBD.CerrarDB(db)
 
-		myExecutor := executor.NewExecutor(db)
-		value, err := myExecutor.GetValueFromInvoke(&invokeData)
+		myExecutor := executor.NewExecutor(db, &formulaExecuteData.Context)
+		value, err := myExecutor.GetValueFromInvoke(&formulaExecuteData.Invoke)
 
 		if err != nil {
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
