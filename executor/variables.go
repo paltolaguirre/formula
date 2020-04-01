@@ -1,6 +1,9 @@
 package executor
 
-import "strconv"
+import (
+	"math"
+	"strconv"
+)
 
 func (executor *Executor) TotalImporteRemunerativo() float64 {
 	//context := ContextLiquidacion{}
@@ -50,8 +53,47 @@ func (executor *Executor) HorasMensuales() float64 {
 		}
 
 	} else {
-		println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+		println("Para realizar el calculo automatico de HorasMensuales, debe seleccionar primero un legajo")
 	}
 
 	return 0
+}
+
+func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
+
+	var respuesta float64 = 0
+
+	liquidacion := executor.context.Currentliquidacion
+
+	fechaLiquidacion := liquidacion.Fecha //No puede ser null
+
+	anioLiquidacion := fechaLiquidacion.Year()
+	mesLiquidacion := fechaLiquidacion.Month()
+	diaLiquidacion := fechaLiquidacion.Day()
+
+	legajo := liquidacion.Legajo;
+	if legajo == nil {
+		println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+		return 0
+	}
+
+	fechaAlta := legajo.Fechaalta //No puede ser null
+
+	anioAlta := fechaAlta.Year()
+	mesAlta := fechaAlta.Month()
+	diaAlta := fechaAlta.Day()
+
+	if anioLiquidacion == anioAlta && mesLiquidacion == mesAlta {
+		respuesta = math.Max(float64(diaLiquidacion - diaAlta) , 0)
+	}
+
+	if anioLiquidacion > anioAlta || (anioLiquidacion == anioAlta  && mesLiquidacion > mesAlta) {
+		respuesta = float64(diaLiquidacion)
+	}
+
+	if anioLiquidacion < anioAlta || (anioLiquidacion == anioAlta  && mesLiquidacion < mesAlta) {
+		respuesta = 0
+	}
+
+	return respuesta
 }
