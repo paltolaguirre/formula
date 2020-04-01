@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"github.com/jinzhu/now"
 	"math"
 	"strconv"
 )
@@ -92,6 +93,46 @@ func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
 	}
 
 	if anioLiquidacion < anioAlta || (anioLiquidacion == anioAlta  && mesLiquidacion < mesAlta) {
+		respuesta = 0
+	}
+
+	return respuesta
+}
+
+func (executor *Executor) DiasMesTrabajadosFechaPeriodo() float64 {
+
+	var respuesta float64 = 0
+
+	liquidacion := executor.context.Currentliquidacion
+
+	periodoLiquidacion := liquidacion.Fechaperiodoliquidacion //No puede ser null
+
+	anioPeriodoLiquidacion := periodoLiquidacion.Year()
+	mesPeriodoLiquidacion := periodoLiquidacion.Month()
+
+	maximoDiaMesPeriodoLiquidacion := now.New(periodoLiquidacion).EndOfMonth().Day()
+
+	legajo := liquidacion.Legajo;
+	if legajo == nil {
+		println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+		return 0
+	}
+
+	fechaAlta := legajo.Fechaalta //No puede ser null
+
+	anioAlta := fechaAlta.Year()
+	mesAlta := fechaAlta.Month()
+	diaAlta := fechaAlta.Day()
+
+	if anioPeriodoLiquidacion == anioAlta && mesPeriodoLiquidacion == mesAlta {
+		respuesta = math.Max(float64(maximoDiaMesPeriodoLiquidacion - diaAlta) , 0)
+	}
+
+	if anioPeriodoLiquidacion > anioAlta || (anioPeriodoLiquidacion == anioAlta  && mesPeriodoLiquidacion > mesAlta) {
+		respuesta = float64(maximoDiaMesPeriodoLiquidacion)
+	}
+
+	if anioPeriodoLiquidacion < anioAlta || (anioPeriodoLiquidacion == anioAlta  && mesPeriodoLiquidacion < mesAlta) {
 		respuesta = 0
 	}
 
