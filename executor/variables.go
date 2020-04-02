@@ -1,9 +1,11 @@
 package executor
 
 import (
+	"fmt"
 	"github.com/jinzhu/now"
 	"math"
 	"strconv"
+	"time"
 )
 
 func (executor *Executor) TotalImporteRemunerativo() float64 {
@@ -33,31 +35,41 @@ func (executor *Executor) TotalImporteRemunerativo() float64 {
 }
 
 func (executor *Executor) Sueldo() float64 {
-	legajo := executor.context.Currentliquidacion.Legajo;
-	if legajo != nil {
-		return float64(legajo.Remuneracion)
-	} else {
-		println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+	var importe float64
+	legajoid := executor.context.Currentliquidacion.Legajoid;
+	if legajoid == nil {
+		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+		return 0
 	}
 
-	return 0
+	sql := "SELECT SUM( remuneracion ) from legajo where id = " + strconv.Itoa(*legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&importe)
+
+	if err != nil {
+		fmt.Println("Error al buscar la remuneracion para el legajo " + strconv.Itoa(*legajoid))
+		return 0
+	}
+
+	return importe
 }
 
 func (executor *Executor) HorasMensuales() float64 {
-	legajo := executor.context.Currentliquidacion.Legajo;
-	if legajo != nil {
-		respuesta, err := strconv.ParseFloat(legajo.Horasmensualesnormales, 64)
-		if err != nil {
-			println("Las horas mensuales normales de ese legajo no son validas")
-		} else {
-			return respuesta
-		}
-
-	} else {
-		println("Para realizar el calculo automatico de HorasMensuales, debe seleccionar primero un legajo")
+	var importe float64
+	legajoid := executor.context.Currentliquidacion.Legajoid;
+	if legajoid == nil {
+		fmt.Println("Para realizar el calculo automatico de HorasMensuales, debe seleccionar primero un legajo")
+		return 0
 	}
 
-	return 0
+	sql := "SELECT SUM( horasmensualesnormales::numeric(19,4) ) from legajo where id = " + strconv.Itoa(*legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&importe)
+
+	if err != nil {
+		fmt.Println("Error al buscar las HorasMensuales para el legajo " + strconv.Itoa(*legajoid))
+		return 0
+	}
+
+	return importe
 }
 
 func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
@@ -72,13 +84,20 @@ func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
 	mesLiquidacion := fechaLiquidacion.Month()
 	diaLiquidacion := fechaLiquidacion.Day()
 
-	legajo := liquidacion.Legajo;
-	if legajo == nil {
-		println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+	legajoid := liquidacion.Legajoid;
+	if legajoid == nil {
+		println("Para realizar el calculo automatico de DiasMesTrabajadosFechaLiquidacion, debe seleccionar primero un legajo")
 		return 0
 	}
 
-	fechaAlta := legajo.Fechaalta //No puede ser null
+	var fechaAlta time.Time
+	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
+
+	if err != nil {
+		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
+		return 0
+	}
 
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()
