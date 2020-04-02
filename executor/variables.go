@@ -72,6 +72,11 @@ func (executor *Executor) Sueldo() float64 {
 	return importe
 }
 
+func (executor *Executor) ValorDiasVacaciones() float64 {
+
+	return executor.Sueldo() / 25
+}
+
 func (executor *Executor) HorasMensuales() float64 {
 	var importe float64
 	legajoid := executor.context.Currentliquidacion.Legajoid;
@@ -183,3 +188,4 @@ func (executor *Executor) DiasMesTrabajadosFechaPeriodo() float64 {
 
 	return respuesta
 }
+

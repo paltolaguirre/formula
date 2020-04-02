@@ -251,3 +251,16 @@ func TestTotalAportesPatronalesMensual(t *testing.T) {
 		t.Errorf("La funcion TotalAportesPatronalesMensual devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 }
+
+
+func TestValorDiasVacaciones(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	esperado := float64(16000)
+	respuesta := executor.ValorDiasVacaciones()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion ValorDiasVacaciones devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
