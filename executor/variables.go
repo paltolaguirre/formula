@@ -3,36 +3,55 @@ package executor
 import (
 	"fmt"
 	"github.com/jinzhu/now"
+	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 	"math"
 	"strconv"
 	"time"
 )
 
 func (executor *Executor) TotalImporteRemunerativo() float64 {
-	//context := ContextLiquidacion{}
-	/*context, ok := (*executor.context).(ContextLiquidacion)
 
-	if !ok {
-		fmt.Println("Error")
-		return 0
-	}*/
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO")
+}
 
-	/*if err := json.Unmarshal(executor.context, &context); err != nil {
-		// do error check
-		fmt.Println(err)
-		return 0
-	}*/
+func (executor *Executor) TotalHaberesNoRemunerativosMensual() float64 {
 
-	liquidacion := executor.context.Currentliquidacion
-	var total float64 = 0
-	for _, item := range liquidacion.Liquidacionitems {
-		if item.Concepto.Tipoconcepto.Codigo == "IMPORTE_REMUNERATIVO" {
-			total += *item.Importeunitario
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_NO_REMUNERATIVO")
+}
+
+func (executor *Executor) TotalDescuentosMensual() float64 {
+
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "DESCUENTO")
+}
+
+func (executor *Executor) TotalRetencionesMensual() float64 {
+
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "RETENCION")
+}
+
+func (executor *Executor) TotalAportesPatronalesMensual() float64 {
+
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL")
+}
+
+func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string) float64 {
+	var importeCalculado float64
+	var importeNil *float64
+
+	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
+		liquidacionitem := liquidacion.Liquidacionitems[i]
+		if liquidacionitem.DeletedAt == nil {
+			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
+				if liquidacionitem.Importeunitario != importeNil {
+					importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+				}
+			}
 		}
 	}
 
-	return float64(total)
+	return importeCalculado
 }
+
 
 func (executor *Executor) Sueldo() float64 {
 	var importe float64
@@ -131,13 +150,20 @@ func (executor *Executor) DiasMesTrabajadosFechaPeriodo() float64 {
 
 	maximoDiaMesPeriodoLiquidacion := now.New(periodoLiquidacion).EndOfMonth().Day()
 
-	legajo := liquidacion.Legajo;
-	if legajo == nil {
-		println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+	legajoid := liquidacion.Legajoid;
+	if legajoid == nil {
+		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
 		return 0
 	}
 
-	fechaAlta := legajo.Fechaalta //No puede ser null
+	var fechaAlta time.Time
+	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
+
+	if err != nil {
+		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
+		return 0
+	}
 
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()

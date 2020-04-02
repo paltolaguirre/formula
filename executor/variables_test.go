@@ -3,9 +3,9 @@ package executor
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/now"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
-	"github.com/xubiosueldos/conexionBD/structGormModel"
 	"os"
 	"testing"
 	"time"
@@ -15,39 +15,19 @@ var DB *gorm.DB
 
 func TestMain(m *testing.M) {
 	tenantPrueba := "tnt_143124"
-	DB = conexionBD.ObtenerDB(tenantPrueba);
-	defer conexionBD.CerrarDB(DB);
+	DB = conexionBD.ObtenerDB(tenantPrueba)
+	defer conexionBD.CerrarDB(DB)
 	os.Exit(m.Run())
 
 }
 
 func getExecutorTest() Executor {
-	legajoid := 1
-	liquidacion := structLiquidacion.Liquidacion{
-		GormModel:                            structGormModel.GormModel{},
-		Nombre:                               "",
-		Codigo:                               "",
-		Descripcion:                          "",
-		Activo:                               0,
-		Legajo:                               nil,
-		Legajoid:                             &legajoid,
-		Tipo:                                 nil,
-		Tipoid:                               nil,
-		Fecha:                                time.Time{},
-		Fechaultimodepositoaportejubilatorio: time.Time{},
-		Zonatrabajo:                          "",
-		Condicionpago:                        nil,
-		Condicionpagoid:                      nil,
-		Cuentabancoid:                        nil,
-		Cuentabanco:                          nil,
-		Bancoaportejubilatorioid:             nil,
-		Bancoaportejubilatorio:               nil,
-		Fechaperiododepositado:               time.Time{},
-		Fechaperiodoliquidacion:              time.Time{},
-		Estacontabilizada:                    false,
-		Asientomanualtransaccionid:           0,
-		Asientomanualnombre:                  "",
-		Liquidacionitems:                     nil,
+
+	var liquidacion structLiquidacion.Liquidacion
+	//gorm:auto_preload se usa para que complete todos los struct con su informacion
+	if err := DB.Set("gorm:auto_preload", true).First(&liquidacion, "id = ?", 1).Error; gorm.IsRecordNotFoundError(err) {
+		fmt.Println("No se pudo cargar la liquidacion 1")
+		return Executor{}
 	}
 	contexto := Context{Currentliquidacion:liquidacion}
 
@@ -62,7 +42,7 @@ func TestSueldo(t *testing.T) {
 	respuesta := executor.Sueldo()
 
 	if respuesta != esperado {
-		t.Errorf("La funcion Sueldo devuelve %f; want y se esperaba %f", respuesta, esperado)
+		t.Errorf("La funcion Sueldo devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 }
 
@@ -75,7 +55,7 @@ func TestHorasMensuales(t *testing.T) {
 	expected := float64(200)
 
 	if respuesta != expected {
-		t.Errorf("La funcion HorasMensuales devuelve %f; want y se esperaba %f", respuesta, expected)
+		t.Errorf("La funcion HorasMensuales devuelve %f y se esperaba %f", respuesta, expected)
 	}
 }
 
@@ -177,93 +157,6 @@ func getFechaLiquidacionAntesDeAltaMismoMesTest() time.Time {
 	return fecha
 }
 
-/*
-import (
-	"fmt"
-	"github.com/jinzhu/now"
-	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
-	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
-	"github.com/xubiosueldos/conexionBD/structGormModel"
-	"strconv"
-	"testing"
-	"time"
-)
-
-func getRemuneracionTest() float32 {
-	return 3000
-}
-
-func getHorasMensualesNormalesTest() string {
-	return "200"
-}
-
-
-
-
-func TestSueldo(t *testing.T) {
-
-	executor := getExecutorTest()
-
-	respuesta := executor.Sueldo()
-
-	if respuesta != float64(getRemuneracionTest()) {
-		t.Errorf("La funcion Sueldo devuelve %f; want y se esperaba %f", respuesta, getRemuneracionTest())
-	}
-}
-
-func TestHorasMensuales(t *testing.T) {
-
-	executor := getExecutorTest()
-
-	respuesta := executor.HorasMensuales()
-
-	expected, err := strconv.ParseFloat(getHorasMensualesNormalesTest(), 64)
-
-	if err != nil {
-		t.Errorf("No se pudo convertir %s a float", getHorasMensualesNormalesTest())
-	}
-
-	if respuesta != expected{
-		t.Errorf("La funcion HorasMensuales devuelve %f; want y se esperaba %f", respuesta, expected)
-	}
-}
-
-func TestDiasMesTrabajadosFechaLiquidacion(t *testing.T) {
-
-	executor := getExecutorTest()
-
-	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaTest())
-
-	respuesta := executor.DiasMesTrabajadosFechaLiquidacion()
-
-	expected := float64(0)
-
-	if respuesta != expected{
-		t.Errorf("La funcion DiasMesTrabajadosFechaLiquidacion con getFechaLiquidacionAntesDeAltaTest devuelve %f; want y se esperaba %f", respuesta, expected)
-	}
-
-	setFechaLiquidacion(&executor, getFechaLiquidacionDespuesDeAltaTest())
-
-	respuesta = executor.DiasMesTrabajadosFechaLiquidacion()
-
-	expected = float64(getFechaLiquidacionDespuesDeAltaTest().Day())
-
-	if respuesta != expected{
-		t.Errorf("La funcion DiasMesTrabajadosFechaLiquidacion con getFechaLiquidacionDespuesDeAltaTest devuelve %f; want y se esperaba %f", respuesta, expected)
-	}
-
-	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest())
-
-	respuesta = executor.DiasMesTrabajadosFechaLiquidacion()
-
-	expected = float64(getFechaLiquidacionAntesDeAltaMismoMesTest().Day() - getFechaAltaTest().Day())
-
-	if respuesta != expected{
-		t.Errorf("La funcion DiasMesTrabajadosFechaLiquidacion con getFechaLiquidacionAntesDeAltaMismoMesTest devuelve %f; want y se esperaba %f", respuesta, expected)
-	}
-}
-
-
 func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
 
 	executor := getExecutorTest()
@@ -275,7 +168,7 @@ func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
 	expected := float64(0)
 
 	if respuesta != expected{
-		t.Errorf("La funcion DiasMesTrabajadosFechaPeriodo con getFechaPeriodoLiquidacionAntesDeAltaTest devuelve %f; want y se esperaba %f", respuesta, expected)
+		t.Errorf("La funcion DiasMesTrabajadosFechaPeriodo con getFechaPeriodoLiquidacionAntesDeAltaTest devuelve %f y se esperaba %f", respuesta, expected)
 	}
 
 	setFechaPeriodoLiquidacion(&executor, getFechaPeriodoLiquidacionDespuesDeAltaTest())
@@ -299,4 +192,62 @@ func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
 	}
 }
 
-*/
+func TestTotalHaberesNoRemunerativosMensual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	esperado := float64(30000)
+	respuesta := executor.TotalHaberesNoRemunerativosMensual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion Sueldo devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
+
+func TestTotalImporteRemunerativo(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	esperado := float64(120000)
+	respuesta := executor.TotalImporteRemunerativo()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion TotalImporteRemunerativo devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
+
+func TestTotalDescuentosMensual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	esperado := float64(7500)
+	respuesta := executor.TotalDescuentosMensual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion TotalDescuentosMensual devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
+
+func TestTotalRetencionesMensual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	esperado := float64(14625)
+	respuesta := executor.TotalRetencionesMensual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion TotalRetencionesMensual devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
+
+func TestTotalAportesPatronalesMensual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	esperado := float64(3000)
+	respuesta := executor.TotalAportesPatronalesMensual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion TotalAportesPatronalesMensual devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
