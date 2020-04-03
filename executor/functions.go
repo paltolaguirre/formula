@@ -40,3 +40,8 @@ func (executor *Executor) Greater(val1 float64, val2 float64) bool {
 func (executor *Executor) GreaterEqual(val1 float64, val2 float64) bool {
 	return val1 >= val2
 }
+
+/* FORMULAS DE XUBIO */
+func (executor *Executor) Jornal() float64 {
+	return executor.Sueldo() / 30
+}
