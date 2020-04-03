@@ -61,3 +61,15 @@ func (executor *Executor) HoraExtra50() float64 {
 
 	return executor.ValorHora() * 1.5 * totalCantidad
 }
+
+func (executor *Executor) HoraExtra100() float64 {
+	liquidacion := executor.context.Currentliquidacion
+	var totalCantidad float64 = 0
+	for _, item := range liquidacion.Liquidacionitems {
+		if item.Concepto.ID == -6 { // Horas Extras 100%
+			totalCantidad += *item.Cantidad
+		}
+	}
+
+	return executor.ValorHora() * 2 * totalCantidad
+}
