@@ -264,3 +264,37 @@ func TestValorDiasVacaciones(t *testing.T) {
 		t.Errorf("La funcion ValorDiasVacaciones devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 }
+
+func TestCantidadMesesTrabajados(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest())
+
+	esperado := float64(0)
+	respuesta := executor.CantidadMesesTrabajados()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion CantidadMesesTrabajados con getFechaLiquidacionAntesDeAltaMismoMesTest devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaTest())
+
+	esperado = float64(0)
+	respuesta = executor.CantidadMesesTrabajados()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion CantidadMesesTrabajados con getFechaLiquidacionAntesDeAltaTest devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionDespuesDeAltaTest())
+
+	esperado = float64(12)
+	respuesta = executor.CantidadMesesTrabajados()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion CantidadMesesTrabajados con getFechaLiquidacionAntesDeAltaTest devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+
+}
