@@ -45,3 +45,7 @@ func (executor *Executor) GreaterEqual(val1 float64, val2 float64) bool {
 func (executor *Executor) Jornal() float64 {
 	return executor.Sueldo() / 30
 }
+
+func (executor *Executor) ValorHora() float64 {
+	return executor.Sueldo() / executor.HorasMensuales()
+}
