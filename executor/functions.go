@@ -107,3 +107,22 @@ func (executor *Executor) DiasFaltasInjustificadas() float64 {
 
 	return totalCantidad
 }
+
+func (executor *Executor) Vacaciones() float64 {
+
+	antiguedad := executor.Antiguedad()
+
+	if antiguedad <= 5 {
+		return executor.ValorDiasVacaciones() * 14
+	}
+
+	if antiguedad <= 10 {
+		return executor.ValorDiasVacaciones() * 21
+	}
+
+	if antiguedad <= 15 {
+		return executor.ValorDiasVacaciones() * 28
+	}
+
+	return executor.ValorDiasVacaciones() * 35
+}
