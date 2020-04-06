@@ -148,3 +148,7 @@ func (executor *Executor) Preaviso() float64 {
 
 	return executor.Sueldo() * 2
 }
+
+func (executor *Executor) SacSinPreaviso() float64 {
+	return executor.Preaviso() / 12
+}
