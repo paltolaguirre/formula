@@ -95,3 +95,15 @@ func (executor *Executor) Antiguedad() float64 {
 
 	return antiguedad
 }
+
+func (executor *Executor) DiasFaltasInjustificadas() float64 {
+	liquidacion := executor.context.Currentliquidacion
+	var totalCantidad float64 = 0
+	for _, item := range liquidacion.Liquidacionitems {
+		if item.Conceptoid == -17 { // Días Faltas Injustificadas
+			totalCantidad += item.Cantidad
+		}
+	}
+
+	return totalCantidad
+}
