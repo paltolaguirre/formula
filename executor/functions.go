@@ -152,3 +152,10 @@ func (executor *Executor) Preaviso() float64 {
 func (executor *Executor) SacSinPreaviso() float64 {
 	return executor.Preaviso() / 12
 }
+
+func (executor *Executor) IntegracionMesDespido() float64 {
+	diasMesTrabajados := executor.DiasMesTrabajadosFechaLiquidacion()
+	jornal := executor.Jornal()
+
+	return (30 - diasMesTrabajados) * jornal
+}
