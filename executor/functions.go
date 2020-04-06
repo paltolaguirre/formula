@@ -126,3 +126,25 @@ func (executor *Executor) Vacaciones() float64 {
 
 	return executor.ValorDiasVacaciones() * 35
 }
+
+func (executor *Executor) Preaviso() float64 {
+	liquidacion := executor.context.Currentliquidacion
+
+	var legajo structLegajo.Legajo
+
+	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
+		return 0
+	}
+
+	liquidacionDate := liquidacion.Fecha
+
+	if (liquidacionDate.Month() - legajo.Fechaalta.Month()) <= 3 {
+		return executor.Sueldo() / 2
+	}
+
+	if (liquidacionDate.Year() - legajo.Fechaalta.Year()) <= 5 {
+		return executor.Sueldo()
+	}
+
+	return executor.Sueldo() * 2
+}
