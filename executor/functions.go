@@ -1,6 +1,10 @@
 package executor
 
 import (
+	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 )
 
@@ -72,4 +76,22 @@ func (executor *Executor) HoraExtra100() float64 {
 	}
 
 	return executor.ValorHora() * 2 * totalCantidad
+}
+
+func (executor *Executor) Antiguedad() float64 {
+	liquidacion := executor.context.Currentliquidacion
+
+	var legajo structLegajo.Legajo
+
+	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
+		return 0
+	}
+
+	currentDate := time.Now()
+	antiguedad := currentDate.Year() - legajo.Fechaalta.Year()
+	if (currentDate.Month() - legajo.Fechaalta.Month()) > 5 {
+		antiguedad++
+	}
+
+	return antiguedad
 }
