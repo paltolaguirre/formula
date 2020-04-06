@@ -159,3 +159,7 @@ func (executor *Executor) IntegracionMesDespido() float64 {
 
 	return (30 - diasMesTrabajados) * jornal
 }
+
+func (executor *Executor) SacSinImd() float64 {
+	return executor.IntegracionMesDespido() / 12
+}
