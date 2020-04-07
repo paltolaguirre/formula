@@ -34,25 +34,6 @@ func (executor *Executor) TotalAportesPatronalesMensual() float64 {
 	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL")
 }
 
-func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string) float64 {
-	var importeCalculado float64
-	var importeNil *float64
-
-	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
-		liquidacionitem := liquidacion.Liquidacionitems[i]
-		if liquidacionitem.DeletedAt == nil {
-			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
-				if liquidacionitem.Importeunitario != importeNil {
-					importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
-				}
-			}
-		}
-	}
-
-	return importeCalculado
-}
-
-
 func (executor *Executor) Sueldo() float64 {
 	var importe float64
 	legajoid := executor.context.Currentliquidacion.Legajoid;
@@ -226,7 +207,70 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 	return mesesDiferencia
 }
 
+func (executor *Executor) MejorRemRemunerativaSemestre() float64 {
 
+	liquidacionActual := executor.context.Currentliquidacion
+	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
+	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
+	var mejorRemuneracion float64 = 0
+	mesInicial := devolverMesInicial(semestral, mesliquidacion)
+	for mes := mesInicial; mes <= mesliquidacion; mes++ {
+		var acumuladorMensual float64 = 0
+		for _, liquidacion := range *liquidaciones {
+			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
+				acumuladorMensual += calculoRemunerativos(liquidacion) - calculoDescuentos(liquidacion)
+			}
+		}
+		if mejorRemuneracion < acumuladorMensual {
+			mejorRemuneracion = acumuladorMensual
+		}
+
+	}
+	return mejorRemuneracion
+}
+
+//AUXILIARES
+
+func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
+	if tipo == semestral {
+		if mesliquidacion < time.July {
+			return time.January
+		}
+		return time.July
+	}
+	return time.January
+}
+
+func calculoRemunerativos(liquidacion structLiquidacion.Liquidacion) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_REMUNERATIVO")
+
+	return importeCalculado
+}
+
+func calculoDescuentos(liquidacion structLiquidacion.Liquidacion) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "DESCUENTO")
+
+	return importeCalculado
+}
+
+func calculoNoRemunerativos(liquidacion structLiquidacion.Liquidacion) float64 {
+
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_NO_REMUNERATIVO")
+	return importeCalculado
+}
+
+
+func (executor *Executor) obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales() *[]structLiquidacion.Liquidacion {
+	var liquidaciones []structLiquidacion.Liquidacion
+	liquidacion := executor.context.Currentliquidacion
+	anioperiodoliquidacion := liquidacion.Fechaperiodoliquidacion.Year()
+	mesliquidacion := liquidacion.Fechaperiodoliquidacion.Month()
+	executor.db.Order("to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') desc").Set("gorm:auto_preload", true).Find(&liquidaciones, "to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') < ? AND to_char(fechaperiodoliquidacion, 'YYYY') = ? AND legajoid = ? AND tipoid in (-1, -2, -3)", mesliquidacion, strconv.Itoa(anioperiodoliquidacion), *liquidacion.Legajoid)
+	if *liquidacion.Tipoid == -1 || *liquidacion.Tipoid == -2 || *liquidacion.Tipoid == -3 {
+		liquidaciones = append(liquidaciones, liquidacion)
+	}
+	return &liquidaciones
+}
 
 func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 	if a.Location() != b.Location() {
@@ -280,68 +324,20 @@ const (
 	anual = 2
 )
 
-func (executor *Executor) MejorRemRemunerativaSemestre() float64 {
+func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string) float64 {
+	var importeCalculado float64
+	var importeNil *float64
 
-	liquidacionActual := executor.context.Currentliquidacion
-	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
-	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
-	var mejorRemuneracion float64 = 0
-	mesInicial := devolverMesInicial(semestral, mesliquidacion)
-	for mes := mesInicial; mes <= mesliquidacion; mes++ {
-		var acumuladorMensual float64 = 0
-		for _, liquidacion := range *liquidaciones {
-			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
-				acumuladorMensual += calculoRemunerativos(liquidacion) - calculoDescuentos(liquidacion)
+	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
+		liquidacionitem := liquidacion.Liquidacionitems[i]
+		if liquidacionitem.DeletedAt == nil {
+			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
+				if liquidacionitem.Importeunitario != importeNil {
+					importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+				}
 			}
 		}
-		if mejorRemuneracion < acumuladorMensual {
-			mejorRemuneracion = acumuladorMensual
-		}
-
 	}
-	return mejorRemuneracion
-}
-
-func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
-	if tipo == semestral {
-		if mesliquidacion < time.July {
-			return time.January
-		}
-		return time.July
-	}
-	return time.January
-}
-
-
-
-
-func calculoRemunerativos(liquidacion structLiquidacion.Liquidacion) float64 {
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_REMUNERATIVO")
 
 	return importeCalculado
-}
-
-func calculoDescuentos(liquidacion structLiquidacion.Liquidacion) float64 {
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "DESCUENTO")
-
-	return importeCalculado
-}
-
-func calculoNoRemunerativos(liquidacion structLiquidacion.Liquidacion) float64 {
-
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_NO_REMUNERATIVO")
-	return importeCalculado
-}
-
-
-func (executor *Executor) obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales() *[]structLiquidacion.Liquidacion {
-	var liquidaciones []structLiquidacion.Liquidacion
-	liquidacion := executor.context.Currentliquidacion
-	anioperiodoliquidacion := liquidacion.Fechaperiodoliquidacion.Year()
-	mesliquidacion := liquidacion.Fechaperiodoliquidacion.Month()
-	executor.db.Order("to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') desc").Set("gorm:auto_preload", true).Find(&liquidaciones, "to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') < ? AND to_char(fechaperiodoliquidacion, 'YYYY') = ? AND legajoid = ? AND tipoid in (-1, -2, -3)", mesliquidacion, strconv.Itoa(anioperiodoliquidacion), *liquidacion.Legajoid)
-	if *liquidacion.Tipoid == -1 || *liquidacion.Tipoid == -2 || *liquidacion.Tipoid == -3 {
-		liquidaciones = append(liquidaciones, liquidacion)
-	}
-	return &liquidaciones
 }
