@@ -229,6 +229,28 @@ func (executor *Executor) MejorRemRemunerativaSemestre() float64 {
 	return mejorRemuneracion
 }
 
+func (executor *Executor) MejorRemNoRemunerativaSemestre() float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
+	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
+	var mejorRemuneracion float64 = 0
+	mesInicial := devolverMesInicial(semestral, mesliquidacion)
+	for mes := mesInicial; mes <= mesliquidacion; mes++ {
+		var acumuladorMensual float64 = 0
+		for _, liquidacion := range *liquidaciones {
+			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
+				acumuladorMensual += calculoNoRemunerativos(liquidacion)
+			}
+		}
+		if mejorRemuneracion < acumuladorMensual {
+			mejorRemuneracion = acumuladorMensual
+		}
+
+	}
+	return mejorRemuneracion
+}
+
 //AUXILIARES
 
 func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {

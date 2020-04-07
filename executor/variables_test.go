@@ -325,3 +325,18 @@ func TestMejorRemRemunerativaSemestre(t *testing.T) {
 	}
 
 }
+
+func TestMejorRemNoRemunerativaSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(30000)
+	respuesta := executor.MejorRemNoRemunerativaSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemNoRemunerativaSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
