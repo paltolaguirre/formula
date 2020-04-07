@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/now"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
+	"github.com/xubiosueldos/framework/configuracion"
 	"os"
 	"testing"
 	"time"
@@ -14,7 +15,8 @@ import (
 var DB *gorm.DB
 
 func TestMain(m *testing.M) {
-	tenantPrueba := "tnt_143124"
+	configuracion := configuracion.GetInstance()
+	tenantPrueba := configuracion.Tenanttest
 	DB = conexionBD.ObtenerDB(tenantPrueba)
 	defer conexionBD.CerrarDB(DB)
 	os.Exit(m.Run())
