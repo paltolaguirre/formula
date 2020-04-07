@@ -163,3 +163,8 @@ func (executor *Executor) IntegracionMesDespido() float64 {
 func (executor *Executor) SacSinImd() float64 {
 	return executor.IntegracionMesDespido() / 12
 }
+
+func (executor *Executor) Sac() float64 {
+	// Falta la formula DiasSemTrabajados()
+	return 0 // (executor.MejorRemRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180
+}
