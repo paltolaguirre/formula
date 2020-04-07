@@ -7,6 +7,6 @@ require (
 	github.com/jinzhu/gorm v1.9.8
 	github.com/jinzhu/now v1.0.0
 	github.com/xubiosueldos/autenticacion v0.0.0-20200305131427-b783dc519e1b
-	github.com/xubiosueldos/conexionBD v0.0.0-20200304165600-079bd34922b7
-	github.com/xubiosueldos/framework v0.0.0-20200212144413-988f52a640e7
+	github.com/xubiosueldos/conexionBD v0.0.0-20200407173402-156545232f2e
+	github.com/xubiosueldos/framework v0.0.0-20200407153707-6c12f66cd487
 )

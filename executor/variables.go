@@ -11,47 +11,28 @@ import (
 
 func (executor *Executor) TotalImporteRemunerativo() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO")
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO", false)
 }
 
 func (executor *Executor) TotalHaberesNoRemunerativosMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_NO_REMUNERATIVO")
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_NO_REMUNERATIVO", false)
 }
 
 func (executor *Executor) TotalDescuentosMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "DESCUENTO")
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "DESCUENTO", false)
 }
 
 func (executor *Executor) TotalRetencionesMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "RETENCION")
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "RETENCION", false)
 }
 
 func (executor *Executor) TotalAportesPatronalesMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL")
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL", false)
 }
-
-func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string) float64 {
-	var importeCalculado float64
-	var importeNil *float64
-
-	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
-		liquidacionitem := liquidacion.Liquidacionitems[i]
-		if liquidacionitem.DeletedAt == nil {
-			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
-				if liquidacionitem.Importeunitario != importeNil {
-					importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
-				}
-			}
-		}
-	}
-
-	return importeCalculado
-}
-
 
 func (executor *Executor) Sueldo() float64 {
 	var importe float64
@@ -226,7 +207,184 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 	return mesesDiferencia
 }
 
+func (executor *Executor) MejorRemRemunerativaSemestre() float64 {
+	return executor.calcularMejorRemunerativa(semestral, false)
+}
 
+func (executor *Executor) MejorRemNoRemunerativaSemestre() float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
+	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
+	var mejorRemuneracion float64 = 0
+	mesInicial := devolverMesInicial(semestral, mesliquidacion)
+	for mes := mesInicial; mes <= mesliquidacion; mes++ {
+		var acumuladorMensual float64 = 0
+		for _, liquidacion := range *liquidaciones {
+			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
+				acumuladorMensual += calculoNoRemunerativos(liquidacion, false)
+			}
+		}
+		if mejorRemuneracion < acumuladorMensual {
+			mejorRemuneracion = acumuladorMensual
+		}
+
+	}
+	return mejorRemuneracion
+}
+
+func (executor *Executor) MejorRemNormalYHabitualSemestre() float64 {
+	return executor.calcularMejorRemunerativa(semestral, true)
+}
+
+func (executor *Executor) MejorRemTotalSinRemVarSemestre() float64 {
+	return executor.calcularMejorTotal(semestral, true)
+}
+
+func (executor *Executor) MejorRemTotalSinRemVarAnual() float64 {
+	return executor.calcularMejorTotal(anual, true)
+}
+
+func (executor *Executor) MejorRemTotalSemestre() float64 {
+	return executor.calcularMejorTotal(semestral, false)
+}
+
+func (executor *Executor) MejorRemTotalAnual() float64 {
+	return executor.calcularMejorTotal(anual, false)
+}
+
+func (executor *Executor) PromRemVariablesSemestre() float64 {
+	return executor.calcularPromedioRemuneracionVariable(semestral)
+}
+
+func (executor *Executor) PromRemVariablesAnual() float64 {
+	return executor.calcularPromedioRemuneracionVariable(anual)
+}
+
+
+//AUXILIARES
+
+func (executor *Executor) calcularPromedioRemuneracionVariable(tipo int) float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
+	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
+	var total float64 = 0
+	mesInicial := devolverMesInicial(tipo, mesliquidacion)
+	var cantidadMeses float64 = 0
+	for mes := mesInicial; mes <= mesliquidacion; mes++ {
+		cantidadMeses++
+		for _, liquidacion := range *liquidaciones {
+			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
+				total += obtenerRemuneracionesVariables(liquidacion)
+			}
+		}
+	}
+	return total / cantidadMeses
+}
+
+func obtenerRemuneracionesVariables(liquidacion structLiquidacion.Liquidacion) float64 {
+	var importeCalculado float64
+	var importeNil *float64
+
+	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
+		liquidacionitem := liquidacion.Liquidacionitems[i]
+		if liquidacionitem.DeletedAt == nil {
+			if liquidacionitem.Concepto.Esremvariable {
+				if liquidacionitem.Importeunitario != importeNil {
+					importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+				}
+			}
+		}
+	}
+
+	return importeCalculado
+}
+
+func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable bool) float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
+	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
+	var mejorRemuneracion float64 = 0
+	mesInicial := devolverMesInicial(tipo, mesliquidacion)
+	for mes := mesInicial; mes <= mesliquidacion; mes++ {
+		var acumuladorMensual float64 = 0
+		for _, liquidacion := range *liquidaciones {
+			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable)
+			}
+		}
+		if mejorRemuneracion < acumuladorMensual {
+			mejorRemuneracion = acumuladorMensual
+		}
+
+	}
+	return mejorRemuneracion
+}
+
+func (executor *Executor) calcularMejorTotal(tipo int, ignoraRemVariable bool) float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
+	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
+	var mejorRemuneracion float64 = 0
+	mesInicial := devolverMesInicial(tipo, mesliquidacion)
+	for mes := mesInicial; mes <= mesliquidacion; mes++ {
+		var acumuladorMensual float64 = 0
+		for _, liquidacion := range *liquidaciones {
+			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable) + calculoNoRemunerativos(liquidacion, ignoraRemVariable)
+			}
+		}
+		if mejorRemuneracion < acumuladorMensual {
+			mejorRemuneracion = acumuladorMensual
+		}
+
+	}
+	return mejorRemuneracion
+}
+
+func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
+	if tipo == semestral {
+		if mesliquidacion < time.July {
+			return time.January
+		}
+		return time.July
+	}
+	return time.January
+}
+
+func calculoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_REMUNERATIVO", ignoravariables)
+
+	return importeCalculado
+}
+
+func calculoDescuentos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "DESCUENTO", ignoravariables)
+
+	return importeCalculado
+}
+
+func calculoNoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
+
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_NO_REMUNERATIVO", ignoravariables)
+	return importeCalculado
+}
+
+
+func (executor *Executor) obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales() *[]structLiquidacion.Liquidacion {
+	var liquidaciones []structLiquidacion.Liquidacion
+	liquidacion := executor.context.Currentliquidacion
+	anioperiodoliquidacion := liquidacion.Fechaperiodoliquidacion.Year()
+	mesliquidacion := liquidacion.Fechaperiodoliquidacion.Month()
+	executor.db.Order("to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') desc").Set("gorm:auto_preload", true).Find(&liquidaciones, "to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') < ? AND to_char(fechaperiodoliquidacion, 'YYYY') = ? AND legajoid = ? AND tipoid in (-1, -2, -3)", mesliquidacion, strconv.Itoa(anioperiodoliquidacion), *liquidacion.Legajoid)
+	if *liquidacion.Tipoid == -1 || *liquidacion.Tipoid == -2 || *liquidacion.Tipoid == -3 {
+		liquidaciones = append(liquidaciones, liquidacion)
+	}
+	return &liquidaciones
+}
 
 func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 	if a.Location() != b.Location() {
@@ -275,4 +433,27 @@ func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 	return
 }
 
+const (
+	semestral = 1
+	anual = 2
+)
 
+func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool) float64 {
+	var importeCalculado float64
+	var importeNil *float64
+
+	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
+		liquidacionitem := liquidacion.Liquidacionitems[i]
+		if liquidacionitem.DeletedAt == nil {
+			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
+				if !ignoravariables || !liquidacionitem.Concepto.Esremvariable {
+					if liquidacionitem.Importeunitario != importeNil {
+						importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+					}
+				}
+			}
+		}
+	}
+
+	return importeCalculado
+}

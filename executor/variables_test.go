@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/now"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
+	"github.com/xubiosueldos/framework/configuracion"
 	"os"
 	"testing"
 	"time"
@@ -14,7 +15,8 @@ import (
 var DB *gorm.DB
 
 func TestMain(m *testing.M) {
-	tenantPrueba := "tnt_143124"
+	configuracion := configuracion.GetInstance()
+	tenantPrueba := configuracion.Tenanttest
 	DB = conexionBD.ObtenerDB(tenantPrueba)
 	defer conexionBD.CerrarDB(DB)
 	os.Exit(m.Run())
@@ -296,5 +298,150 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 		t.Errorf("La funcion CantidadMesesTrabajados con getFechaLiquidacionAntesDeAltaTest devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
+
+}
+
+func getPeriodoLiquidacionJunio2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-05-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionJulio2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func TestMejorRemRemunerativaSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemRemunerativaSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemRemunerativaSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestMejorRemNoRemunerativaSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(30000)
+	respuesta := executor.MejorRemNoRemunerativaSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemNoRemunerativaSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestMejorRemNormalYHabitualSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemNormalYHabitualSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemNormalYHabitualSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestMejorRemTotalSinRemVarSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemTotalSinRemVarSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemTotalSinRemVarSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestMejorRemTotalSinRemVarAnual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemTotalSinRemVarAnual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemTotalSinRemVarAnual con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestMejorRemTotalSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemTotalSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemTotalSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestMejorRemTotalAnual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemTotalAnual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemTotalAnual con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestPromRemVariablesSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(0)
+	respuesta := executor.PromRemVariablesSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestPromRemVariablesAnual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(0)
+	respuesta := executor.PromRemVariablesAnual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesAnual con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
 
 }
