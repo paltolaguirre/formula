@@ -415,3 +415,33 @@ func TestMejorRemTotalAnual(t *testing.T) {
 	}
 
 }
+
+func TestPromRemVariablesSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(0)
+	respuesta := executor.PromRemVariablesSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestPromRemVariablesAnual(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(0)
+	respuesta := executor.PromRemVariablesAnual()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesAnual con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
