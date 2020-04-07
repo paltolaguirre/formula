@@ -300,3 +300,28 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 
 
 }
+
+func getPeriodoLiquidacionJunio2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-05-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionJulio2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func TestMejorRemRemunerativaSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJunio2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemRemunerativaSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemRemunerativaSemestre con getPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
