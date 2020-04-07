@@ -237,7 +237,21 @@ func (executor *Executor) MejorRemNormalYHabitualSemestre() float64 {
 	return executor.calcularMejorRemunerativa(semestral, true)
 }
 
+func (executor *Executor) MejorRemTotalSinRemVarSemestre() float64 {
+	return executor.calcularMejorTotal(semestral, true)
+}
 
+func (executor *Executor) MejorRemTotalSinRemVarAnual() float64 {
+	return executor.calcularMejorTotal(anual, true)
+}
+
+func (executor *Executor) MejorRemTotalSemestre() float64 {
+	return executor.calcularMejorTotal(semestral, false)
+}
+
+func (executor *Executor) MejorRemTotalAnual() float64 {
+	return executor.calcularMejorTotal(anual, false)
+}
 
 
 //AUXILIARES
@@ -253,7 +267,7 @@ func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable 
 		var acumuladorMensual float64 = 0
 		for _, liquidacion := range *liquidaciones {
 			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
-				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, false)
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable)
 			}
 		}
 		if mejorRemuneracion < acumuladorMensual {
@@ -264,6 +278,27 @@ func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable 
 	return mejorRemuneracion
 }
 
+func (executor *Executor) calcularMejorTotal(tipo int, ignoraRemVariable bool) float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
+	liquidaciones := executor.obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales()
+	var mejorRemuneracion float64 = 0
+	mesInicial := devolverMesInicial(tipo, mesliquidacion)
+	for mes := mesInicial; mes <= mesliquidacion; mes++ {
+		var acumuladorMensual float64 = 0
+		for _, liquidacion := range *liquidaciones {
+			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable) + calculoNoRemunerativos(liquidacion, ignoraRemVariable)
+			}
+		}
+		if mejorRemuneracion < acumuladorMensual {
+			mejorRemuneracion = acumuladorMensual
+		}
+
+	}
+	return mejorRemuneracion
+}
 
 func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
 	if tipo == semestral {
