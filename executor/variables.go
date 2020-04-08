@@ -577,3 +577,14 @@ func (executor *Executor) FechaDeIngreso() time.Time {
 
 	return *legajo.Fechaalta
 }
+
+func (executor *Executor) FechadeLiquidacion() time.Time {
+	liquidacion := executor.context.Currentliquidacion
+
+	return liquidacion.Fecha
+}
+
+
+func (executor *Executor) FecIngHASTAFecLiq() float64 {
+	return math.Round(((executor.FechadeLiquidacion().Sub(executor.FechaDeIngreso()).Hours() / 24) / 365) * 100 ) / 100
+}

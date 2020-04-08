@@ -502,3 +502,34 @@ func TestFechaDeIngreso(t *testing.T) {
 	}
 
 }
+
+func TestFechadeLiquidacion(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest() )
+
+	esperado := getFechaLiquidacionAntesDeAltaMismoMesTest()
+	respuesta := executor.FechadeLiquidacion()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion FechaDeIngreso devuelve %s y se esperaba %s", respuesta, esperado)
+	}
+
+}
+
+func TestFecIngHASTAFecLiq(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionDespuesDeAltaTest() )
+
+	esperado := float64(1.04)
+	respuesta := executor.FecIngHASTAFecLiq()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion FecIngHASTAFecLiq devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
