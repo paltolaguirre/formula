@@ -264,7 +264,35 @@ func (executor *Executor) PromRemVariablesAnual() float64 {
 	return executor.calcularPromedioRemuneracionVariable(anual)
 }
 
+func (executor *Executor) DiasLicenciaMes() float64 {
+	return executor.obtenerDiasLicencia(mensual)
+}
+
+func (executor *Executor) DiasLicenciaSemestre() float64 {
+	return executor.obtenerDiasLicencia(semestral)
+}
+
 //AUXILIARES
+
+func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
+	liquidacionActual := executor.context.Currentliquidacion
+	var resultado float64
+	periodoLiquidacion := liquidacionActual.Fechaperiodoliquidacion //No puede ser null
+
+	anioPeriodoLiquidacion := periodoLiquidacion.Year()
+	mesPeriodoLiquidacion := periodoLiquidacion.Month()
+
+	mesInicial := devolverMesInicial(tipo, mesPeriodoLiquidacion)
+
+	sql := fmt.Sprintf("select sum(importe * cantidad) from novedad where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid = -34", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&resultado)
+
+	if err != nil {
+
+	}
+
+	return resultado
+}
 
 func (executor *Executor) calcularPromedioRemuneracionVariable(tipo int) float64 {
 
@@ -348,6 +376,9 @@ func (executor *Executor) calcularMejorTotal(tipo int, ignoraRemVariable bool) f
 }
 
 func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
+	if tipo == mensual {
+		return mesliquidacion
+	}
 	if tipo == semestral {
 		if mesliquidacion < time.July {
 			return time.January
@@ -435,8 +466,9 @@ func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 }
 
 const (
-	semestral = 1
-	anual     = 2
+	mensual = 1
+	semestral = 2
+	anual = 3
 )
 
 func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool) float64 {
