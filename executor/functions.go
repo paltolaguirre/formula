@@ -173,3 +173,12 @@ func (executor *Executor) SacNoRemunerativo() float64 {
 	// Falta la formula DiasSemTrabajados()
 	return 0 //(executor.MejorRemNoRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180
 }
+
+func (executor *Executor) CantidadSueldos() float64 {
+	// Falta la formula Resto()
+	if 0 /*executor.Resto()*/ < 0.25 {
+		return executor.Antiguedad()
+	} else {
+		return executor.Antiguedad() + 1
+	}
+}
