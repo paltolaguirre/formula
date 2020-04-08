@@ -500,7 +500,7 @@ func (executor *Executor) AntiguedadResto() float64 {
 		return 0
 	}
 
-	start := legajo.Fechaalta
+	start := *legajo.Fechaalta
 	end := liquidacion.Fecha
 
 	period := end.Sub(start)
