@@ -182,3 +182,17 @@ func (executor *Executor) CantidadSueldos() float64 {
 		return executor.Antiguedad() + 1
 	}
 }
+
+func (executor *Executor) IndemnizacionPorDespido(importe float64) float64 {
+	mejorRem := executor.MejorRemNormalYHabitualSemestre()
+
+	if mejorRem <= importe*3 {
+		return mejorRem * executor.CantidadSueldos()
+	}
+
+	if mejorRem*0.67 <= importe*3 {
+		return mejorRem * 0.67
+	}
+
+	return importe * 3 * executor.CantidadSueldos()
+}
