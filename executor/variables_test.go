@@ -5,16 +5,12 @@ import (
 	"os"
 	"testing"
 	"time"
-
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 	"github.com/xubiosueldos/framework/configuracion"
 	"math"
-	"os"
-	"testing"
-	"time"
 )
 
 var DB *gorm.DB
@@ -498,8 +494,8 @@ func TestFechaDeIngreso(t *testing.T) {
 
 	executor := getExecutorTest()
 
-	esperado := time.Date(2019, 9, 5, 3, 0, 0, 0, time.UTC)
-	respuesta := *executor.FechaDeIngreso()
+	esperado := time.Date(2019, 1, 14, 3, 0, 0, 0, time.UTC)
+	respuesta := executor.FechaDeIngreso()
 
 	if respuesta != esperado {
 		t.Errorf("La funcion FechaDeIngreso devuelve %s y se esperaba %s", respuesta, esperado)
