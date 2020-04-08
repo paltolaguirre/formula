@@ -306,10 +306,17 @@ func (executor *Executor) DiasSemTrabajados() float64 {
 	}
 }
 
+func (executor *Executor) DiasEfectivamenteTrabajadosSemestre() float64 {
+	return executor.DiasSemTrabajados() - executor.obtenerDiasSegunConcepto(semestral, "DIAS_ACCIDENTE") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_ENFERMEDAD") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_FALTAS_INJUSTIFICADAS") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_DE_LICENCIA")
+}
 
 //AUXILIARES
 
 func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
+	return executor.obtenerDiasSegunConcepto(tipo, "DIAS_DE_LICENCIA")
+}
+
+func (executor *Executor) obtenerDiasSegunConcepto(tipo int, conceptoCodigo string) float64 {
 	liquidacionActual := executor.context.Currentliquidacion
 	var resultado float64
 	periodoLiquidacion := liquidacionActual.Fechaperiodoliquidacion //No puede ser null
@@ -319,15 +326,21 @@ func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
 
 	mesInicial := devolverMesInicial(tipo, mesPeriodoLiquidacion)
 
-	sql := fmt.Sprintf("select sum(importe * cantidad) from novedad where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid = -34", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid)
+	sql := fmt.Sprintf("select coalesce(sum(coalesce(cantidad, 0)), 0) from novedad where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid in (SELECT id from concepto where codigo = '%s')", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid, conceptoCodigo)
 	err := executor.db.Raw(sql).Row().Scan(&resultado)
 
 	if err != nil {
-
+		fmt.Printf("No se pudo consultar la cantidad de %s", conceptoCodigo)
+		fmt.Println()
 	}
 
 	return resultado
 }
+
+
+
+
+
 
 func (executor *Executor) calcularPromedioRemuneracionVariable(tipo int) float64 {
 

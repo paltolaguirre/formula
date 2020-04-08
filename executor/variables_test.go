@@ -460,3 +460,18 @@ func TestDiasSemTrabajados(t *testing.T) {
 	}
 
 }
+
+func TestDiasEfectivamenteTrabajadosSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := float64(151)
+	respuesta := executor.DiasEfectivamenteTrabajadosSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion DiasEfectivamenteTrabajadosSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
