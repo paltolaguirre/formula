@@ -84,28 +84,13 @@ func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
 
 	var respuesta float64 = 0
 
-	liquidacion := executor.context.Currentliquidacion
-
-	fechaLiquidacion := liquidacion.Fecha //No puede ser null
+	fechaLiquidacion := executor.FechadeLiquidacion()
 
 	anioLiquidacion := fechaLiquidacion.Year()
 	mesLiquidacion := fechaLiquidacion.Month()
 	diaLiquidacion := fechaLiquidacion.Day()
 
-	legajoid := liquidacion.Legajoid
-	if legajoid == nil {
-		println("Para realizar el calculo automatico de DiasMesTrabajadosFechaLiquidacion, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
+	fechaAlta := executor.FechaDeIngreso()
 
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()
@@ -139,20 +124,7 @@ func (executor *Executor) DiasMesTrabajadosFechaPeriodo() float64 {
 
 	maximoDiaMesPeriodoLiquidacion := now.New(periodoLiquidacion).EndOfMonth().Day()
 
-	legajoid := liquidacion.Legajoid
-	if legajoid == nil {
-		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
+	fechaAlta := executor.FechaDeIngreso()
 
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()
@@ -181,23 +153,9 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 	anioLiquidacion := fechaLiquidacion.Year()
 	mesLiquidacion := fechaLiquidacion.Month()
 
-	legajoid := liquidacion.Legajoid
-	if legajoid == nil {
-		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
+	fechaAlta := executor.FechaDeIngreso()
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
 
 	year, month, _, _, _, _ := diff(fechaLiquidacion, fechaAlta)
 
@@ -284,20 +242,7 @@ func (executor *Executor) DiasSemTrabajados() float64 {
 		now.New(primerDiaDelSemestreLiquidacion).AddDate(0, 6, 0)
 	}
 
-	legajoid := liquidacionActual.Legajoid
-	if legajoid == nil {
-		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
+	fechaAlta := executor.FechaDeIngreso()
 
 	if fechaAlta.Before(primerDiaDelSemestreLiquidacion) {
 		return diffDias(ultimoDiaDelMesPeriodoLiquidacion, primerDiaDelSemestreLiquidacion)
@@ -311,15 +256,10 @@ func (executor *Executor) DiasEfectivamenteTrabajadosSemestre() float64 {
 }
 
 func (executor *Executor) AntiguedadResto() float64 {
+	
 	liquidacion := executor.context.Currentliquidacion
 
-	var legajo structLegajo.Legajo
-
-	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
-		return 0
-	}
-
-	start := *legajo.Fechaalta
+	start := executor.FechaDeIngreso()
 	end := now.New(liquidacion.Fechaperiodoliquidacion).EndOfMonth()
 
 	period := end.Sub(start)
@@ -570,8 +510,9 @@ func (executor *Executor) FechaDeIngreso() time.Time {
 
 	var legajo structLegajo.Legajo
 
-	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
+	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajoid).Error; gorm.IsRecordNotFoundError(err) {
 		t := time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
+		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*liquidacion.Legajoid))
 		return t
 	}
 
