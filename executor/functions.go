@@ -1,8 +1,6 @@
 package executor
 
 import (
-	"time"
-
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
@@ -87,11 +85,13 @@ func (executor *Executor) Antiguedad() float64 {
 		return 0
 	}
 
-	currentDate := time.Now()
-	antiguedad := currentDate.Year() - legajo.Fechaalta.Year()
-	if (currentDate.Month() - legajo.Fechaalta.Month()) > 5 {
-		antiguedad++
-	}
+	start := legajo.Fechaalta
+	end := liquidacion.Fecha
+
+	period := end.Sub(start)
+	days := int(period.Hours() / 24)
+	years := int(days / 365)
+	antiguedad := float64(years)
 
 	return antiguedad
 }
