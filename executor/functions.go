@@ -56,7 +56,7 @@ func (executor *Executor) HoraExtra50() float64 {
 	liquidacion := executor.context.Currentliquidacion
 	var totalCantidad float64 = 0
 	for _, item := range liquidacion.Liquidacionitems {
-		if item.Conceptoid == -5 { // Horas Extras 50%
+		if *item.Conceptoid == -5 { // Horas Extras 50%
 			totalCantidad += item.Cantidad
 		}
 	}
@@ -68,7 +68,7 @@ func (executor *Executor) HoraExtra100() float64 {
 	liquidacion := executor.context.Currentliquidacion
 	var totalCantidad float64 = 0
 	for _, item := range liquidacion.Liquidacionitems {
-		if item.Conceptoid == -6 { // Horas Extras 100%
+		if *item.Conceptoid == -6 { // Horas Extras 100%
 			totalCantidad += item.Cantidad
 		}
 	}
@@ -85,7 +85,7 @@ func (executor *Executor) Antiguedad() float64 {
 		return 0
 	}
 
-	start := legajo.Fechaalta
+	start := *legajo.Fechaalta
 	end := liquidacion.Fecha
 
 	period := end.Sub(start)
@@ -100,7 +100,7 @@ func (executor *Executor) DiasFaltasInjustificadas() float64 {
 	liquidacion := executor.context.Currentliquidacion
 	var totalCantidad float64 = 0
 	for _, item := range liquidacion.Liquidacionitems {
-		if item.Conceptoid == -17 { // Días Faltas Injustificadas
+		if *item.Conceptoid == -17 { // Días Faltas Injustificadas
 			totalCantidad += item.Cantidad
 		}
 	}
