@@ -2,6 +2,10 @@ package executor
 
 import (
 	"fmt"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
 	"github.com/xubiosueldos/conexionBD"
@@ -32,9 +36,9 @@ func getExecutorTest() Executor {
 		fmt.Println("No se pudo cargar la liquidacion 1")
 		return Executor{}
 	}
-	contexto := Context{Currentliquidacion:liquidacion}
+	contexto := Context{Currentliquidacion: liquidacion}
 
-	return Executor{context:&contexto, db:DB}
+	return Executor{context: &contexto, db: DB}
 }
 
 func TestSueldo(t *testing.T) {
@@ -72,7 +76,7 @@ func TestDiasMesTrabajadosFechaLiquidacion(t *testing.T) {
 
 	expected := float64(0)
 
-	if respuesta != expected{
+	if respuesta != expected {
 		t.Errorf("La funcion DiasMesTrabajadosFechaLiquidacion con getFechaLiquidacionAntesDeAltaTest devuelve %f; want y se esperaba %f", respuesta, expected)
 	}
 
@@ -82,7 +86,7 @@ func TestDiasMesTrabajadosFechaLiquidacion(t *testing.T) {
 
 	expected = float64(getFechaLiquidacionDespuesDeAltaTest().Day())
 
-	if respuesta != expected{
+	if respuesta != expected {
 		t.Errorf("La funcion DiasMesTrabajadosFechaLiquidacion con getFechaLiquidacionDespuesDeAltaTest devuelve %f; want y se esperaba %f", respuesta, expected)
 	}
 
@@ -92,16 +96,16 @@ func TestDiasMesTrabajadosFechaLiquidacion(t *testing.T) {
 
 	expected = float64(getFechaLiquidacionAntesDeAltaMismoMesTest().Day() - getFechaAltaTest().Day())
 
-	if respuesta != expected{
+	if respuesta != expected {
 		t.Errorf("La funcion DiasMesTrabajadosFechaLiquidacion con getFechaLiquidacionAntesDeAltaMismoMesTest devuelve %f; want y se esperaba %f", respuesta, expected)
 	}
 }
 
-func setFechaLiquidacion(executor *Executor, fechaLiquidacion time.Time)  {
+func setFechaLiquidacion(executor *Executor, fechaLiquidacion time.Time) {
 	executor.context.Currentliquidacion.Fecha = fechaLiquidacion
 }
 
-func setFechaPeriodoLiquidacion(executor *Executor, fechaPeriodoLiquidacion time.Time)  {
+func setFechaPeriodoLiquidacion(executor *Executor, fechaPeriodoLiquidacion time.Time) {
 	executor.context.Currentliquidacion.Fechaperiodoliquidacion = fechaPeriodoLiquidacion
 }
 
@@ -170,7 +174,7 @@ func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
 
 	expected := float64(0)
 
-	if respuesta != expected{
+	if respuesta != expected {
 		t.Errorf("La funcion DiasMesTrabajadosFechaPeriodo con getFechaPeriodoLiquidacionAntesDeAltaTest devuelve %f y se esperaba %f", respuesta, expected)
 	}
 
@@ -180,7 +184,7 @@ func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
 
 	expected = float64(now.New(getFechaPeriodoLiquidacionDespuesDeAltaTest()).EndOfMonth().Day())
 
-	if respuesta != expected{
+	if respuesta != expected {
 		t.Errorf("La funcion DiasMesTrabajadosFechaPeriodo con getFechaPeriodoLiquidacionDespuesDeAltaTest devuelve %f; want y se esperaba %f", respuesta, expected)
 	}
 
@@ -190,7 +194,7 @@ func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
 
 	expected = float64(now.New(getFechaPeriodoLiquidacionAntesDeAltaMismoMesTest()).EndOfMonth().Day() - getFechaAltaTest().Day())
 
-	if respuesta != expected{
+	if respuesta != expected {
 		t.Errorf("La funcion DiasMesTrabajadosFechaPeriodo con getFechaPeriodoLiquidacionAntesDeAltaMismoMesTest devuelve %f; want y se esperaba %f", respuesta, expected)
 	}
 }
@@ -255,7 +259,6 @@ func TestTotalAportesPatronalesMensual(t *testing.T) {
 	}
 }
 
-
 func TestValorDiasVacaciones(t *testing.T) {
 
 	executor := getExecutorTest()
@@ -298,7 +301,6 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 	if respuesta != esperado {
 		t.Errorf("La funcion CantidadMesesTrabajados con getFechaLiquidacionAntesDeAltaTest devuelve %f y se esperaba %f", respuesta, esperado)
 	}
-
 
 }
 
@@ -488,6 +490,19 @@ func TestAntiguedadResto(t *testing.T) {
 
 	if respuesta != esperado {
 		t.Errorf("La funcion AntiguedadResto con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestFechaDeIngreso(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	esperado := time.Date(2019, 9, 5, 3, 0, 0, 0, time.UTC)
+	respuesta := *executor.FechaDeIngreso()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion FechaDeIngreso devuelve %s y se esperaba %s", respuesta, esperado)
 	}
 
 }

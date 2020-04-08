@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
@@ -141,6 +142,9 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 		case "bool":
 			val := results[0]
 			result.Valueboolean = val.Bool()
+		case "Time":
+			val := results[0]
+			result.Valuestring = val.Interface().(time.Time).Format("2006-01-02T00:00:00Z")
 		}
 
 		return result, nil

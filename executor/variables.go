@@ -539,9 +539,9 @@ func diffDias(a time.Time, b time.Time) float64 {
 }
 
 const (
-	mensual = 1
+	mensual   = 1
 	semestral = 2
-	anual = 3
+	anual     = 3
 )
 
 func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool) float64 {
@@ -564,3 +564,16 @@ func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion,
 	return importeCalculado
 }
 
+
+func (executor *Executor) FechaDeIngreso() time.Time {
+	liquidacion := executor.context.Currentliquidacion
+
+	var legajo structLegajo.Legajo
+
+	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
+		t := time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
+		return t
+	}
+
+	return *legajo.Fechaalta
+}
