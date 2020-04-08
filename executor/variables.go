@@ -14,27 +14,27 @@ import (
 
 func (executor *Executor) TotalImporteRemunerativo() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO", false, false)
 }
 
 func (executor *Executor) TotalHaberesNoRemunerativosMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_NO_REMUNERATIVO", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_NO_REMUNERATIVO", false, false)
 }
 
 func (executor *Executor) TotalDescuentosMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "DESCUENTO", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "DESCUENTO", false, false)
 }
 
 func (executor *Executor) TotalRetencionesMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "RETENCION", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "RETENCION", false, false)
 }
 
 func (executor *Executor) TotalAportesPatronalesMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL", false, false)
 }
 
 func (executor *Executor) Sueldo() float64 {
@@ -169,7 +169,7 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 }
 
 func (executor *Executor) MejorRemRemunerativaSemestre() float64 {
-	return executor.calcularMejorRemunerativa(semestral, false)
+	return executor.calcularMejorRemunerativa(semestral, false, false)
 }
 
 func (executor *Executor) MejorRemNoRemunerativaSemestre() float64 {
@@ -195,7 +195,7 @@ func (executor *Executor) MejorRemNoRemunerativaSemestre() float64 {
 }
 
 func (executor *Executor) MejorRemNormalYHabitualSemestre() float64 {
-	return executor.calcularMejorRemunerativa(semestral, true)
+	return executor.calcularMejorRemunerativa(semestral, true, false)
 }
 
 func (executor *Executor) MejorRemTotalSinRemVarSemestre() float64 {
@@ -256,7 +256,7 @@ func (executor *Executor) DiasEfectivamenteTrabajadosSemestre() float64 {
 }
 
 func (executor *Executor) AntiguedadResto() float64 {
-	
+
 	liquidacion := executor.context.Currentliquidacion
 
 	start := executor.FechaDeIngreso()
@@ -268,6 +268,11 @@ func (executor *Executor) AntiguedadResto() float64 {
 
 	return math.Round(yearsRemainder*10000)/10000
 }
+
+func (executor *Executor) MejorRemRemunerativaBaseSACSemestre() float64 {
+	return executor.calcularMejorRemunerativa(semestral, false, true)
+}
+
 
 
 //AUXILIARES
@@ -339,7 +344,7 @@ func obtenerRemuneracionesVariables(liquidacion structLiquidacion.Liquidacion) f
 	return importeCalculado
 }
 
-func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable bool) float64 {
+func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable bool, soloBaseSac bool) float64 {
 
 	liquidacionActual := executor.context.Currentliquidacion
 	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
@@ -350,7 +355,7 @@ func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable 
 		var acumuladorMensual float64 = 0
 		for _, liquidacion := range *liquidaciones {
 			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
-				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable)
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable, soloBaseSac) - calculoDescuentos(liquidacion, ignoraRemVariable, soloBaseSac)
 			}
 		}
 		if mejorRemuneracion < acumuladorMensual {
@@ -372,7 +377,7 @@ func (executor *Executor) calcularMejorTotal(tipo int, ignoraRemVariable bool) f
 		var acumuladorMensual float64 = 0
 		for _, liquidacion := range *liquidaciones {
 			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
-				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable) + calculoNoRemunerativos(liquidacion, ignoraRemVariable)
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable, false) - calculoDescuentos(liquidacion, ignoraRemVariable, false) + calculoNoRemunerativos(liquidacion, ignoraRemVariable)
 			}
 		}
 		if mejorRemuneracion < acumuladorMensual {
@@ -396,21 +401,21 @@ func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
 	return time.January
 }
 
-func calculoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_REMUNERATIVO", ignoravariables)
+func calculoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool, soloBaseSac bool) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_REMUNERATIVO", ignoravariables, soloBaseSac)
 
 	return importeCalculado
 }
 
-func calculoDescuentos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "DESCUENTO", ignoravariables)
+func calculoDescuentos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool, soloBaseSac bool) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "DESCUENTO", ignoravariables, soloBaseSac)
 
 	return importeCalculado
 }
 
 func calculoNoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
 
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_NO_REMUNERATIVO", ignoravariables)
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_NO_REMUNERATIVO", ignoravariables, false)
 	return importeCalculado
 }
 
@@ -484,7 +489,7 @@ const (
 	anual     = 3
 )
 
-func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool) float64 {
+func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool, soloBaseSac bool) float64 {
 	var importeCalculado float64
 	var importeNil *float64
 
@@ -492,9 +497,11 @@ func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion,
 		liquidacionitem := liquidacion.Liquidacionitems[i]
 		if liquidacionitem.DeletedAt == nil {
 			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
-				if !ignoravariables || !liquidacionitem.Concepto.Esremvariable {
-					if liquidacionitem.Importeunitario != importeNil {
-						importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+				if !soloBaseSac || liquidacionitem.Concepto.Basesac {
+					if !ignoravariables || !liquidacionitem.Concepto.Esremvariable {
+						if liquidacionitem.Importeunitario != importeNil {
+							importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+						}
 					}
 				}
 			}

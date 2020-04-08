@@ -533,3 +533,17 @@ func TestFecIngHASTAFecLiq(t *testing.T) {
 
 }
 
+func TestMejorRemRemunerativaBaseSACSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemRemunerativaBaseSACSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemRemunerativaSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
