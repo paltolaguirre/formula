@@ -174,9 +174,11 @@ func (executor *Executor) SacNoRemunerativo() float64 {
 	return 0 //(executor.MejorRemNoRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180
 }
 
+/*
+ * TODO: se podria hacer un refactor para calcular la antiguedad directamente aca. Seria mas optimo.
+ */
 func (executor *Executor) CantidadSueldos() float64 {
-	// Falta la formula Resto()
-	if 0 /*executor.Resto()*/ < 0.25 {
+	if executor.AntiguedadResto() < 0.25 {
 		return executor.Antiguedad()
 	} else {
 		return executor.Antiguedad() + 1
