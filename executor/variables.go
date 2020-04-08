@@ -272,6 +272,41 @@ func (executor *Executor) DiasLicenciaSemestre() float64 {
 	return executor.obtenerDiasLicencia(semestral)
 }
 
+func (executor *Executor) DiasSemTrabajados() float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	fechaPeriodoliquidacion := liquidacionActual.Fechaperiodoliquidacion
+
+	ultimoDiaDelMesPeriodoLiquidacion := now.New(fechaPeriodoliquidacion).EndOfMonth()
+	primerDiaDelSemestreLiquidacion := now.New(fechaPeriodoliquidacion).BeginningOfYear()
+
+	if fechaPeriodoliquidacion.Month() >= time.July {
+		now.New(primerDiaDelSemestreLiquidacion).AddDate(0, 6, 0)
+	}
+
+	legajoid := liquidacionActual.Legajoid
+	if legajoid == nil {
+		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+		return 0
+	}
+
+	var fechaAlta time.Time
+	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
+
+	if err != nil {
+		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
+		return 0
+	}
+
+	if fechaAlta.Before(primerDiaDelSemestreLiquidacion) {
+		return diffDias(ultimoDiaDelMesPeriodoLiquidacion, primerDiaDelSemestreLiquidacion)
+	} else {
+		return diffDias(ultimoDiaDelMesPeriodoLiquidacion, fechaAlta)
+	}
+}
+
+
 //AUXILIARES
 
 func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
