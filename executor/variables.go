@@ -264,7 +264,70 @@ func (executor *Executor) PromRemVariablesAnual() float64 {
 	return executor.calcularPromedioRemuneracionVariable(anual)
 }
 
+func (executor *Executor) DiasLicenciaMes() float64 {
+	return executor.obtenerDiasLicencia(mensual)
+}
+
+func (executor *Executor) DiasLicenciaSemestre() float64 {
+	return executor.obtenerDiasLicencia(semestral)
+}
+
+func (executor *Executor) DiasSemTrabajados() float64 {
+
+	liquidacionActual := executor.context.Currentliquidacion
+	fechaPeriodoliquidacion := liquidacionActual.Fechaperiodoliquidacion
+
+	ultimoDiaDelMesPeriodoLiquidacion := now.New(fechaPeriodoliquidacion).EndOfMonth()
+	primerDiaDelSemestreLiquidacion := now.New(fechaPeriodoliquidacion).BeginningOfYear()
+
+	if fechaPeriodoliquidacion.Month() >= time.July {
+		now.New(primerDiaDelSemestreLiquidacion).AddDate(0, 6, 0)
+	}
+
+	legajoid := liquidacionActual.Legajoid
+	if legajoid == nil {
+		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
+		return 0
+	}
+
+	var fechaAlta time.Time
+	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
+
+	if err != nil {
+		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
+		return 0
+	}
+
+	if fechaAlta.Before(primerDiaDelSemestreLiquidacion) {
+		return diffDias(ultimoDiaDelMesPeriodoLiquidacion, primerDiaDelSemestreLiquidacion)
+	} else {
+		return diffDias(ultimoDiaDelMesPeriodoLiquidacion, fechaAlta)
+	}
+}
+
+
 //AUXILIARES
+
+func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
+	liquidacionActual := executor.context.Currentliquidacion
+	var resultado float64
+	periodoLiquidacion := liquidacionActual.Fechaperiodoliquidacion //No puede ser null
+
+	anioPeriodoLiquidacion := periodoLiquidacion.Year()
+	mesPeriodoLiquidacion := periodoLiquidacion.Month()
+
+	mesInicial := devolverMesInicial(tipo, mesPeriodoLiquidacion)
+
+	sql := fmt.Sprintf("select sum(importe * cantidad) from novedad where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid = -34", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid)
+	err := executor.db.Raw(sql).Row().Scan(&resultado)
+
+	if err != nil {
+
+	}
+
+	return resultado
+}
 
 func (executor *Executor) calcularPromedioRemuneracionVariable(tipo int) float64 {
 
@@ -348,6 +411,9 @@ func (executor *Executor) calcularMejorTotal(tipo int, ignoraRemVariable bool) f
 }
 
 func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
+	if tipo == mensual {
+		return mesliquidacion
+	}
 	if tipo == semestral {
 		if mesliquidacion < time.July {
 			return time.January
@@ -434,9 +500,15 @@ func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 	return
 }
 
+func diffDias(a time.Time, b time.Time) float64 {
+	days := math.Trunc(a.Sub(b).Hours() / 24)
+	return days
+}
+
 const (
-	semestral = 1
-	anual     = 2
+	mensual = 1
+	semestral = 2
+	anual = 3
 )
 
 func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool) float64 {
