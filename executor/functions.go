@@ -165,7 +165,7 @@ func (executor *Executor) SacSinImd() float64 {
 }
 
 func (executor *Executor) Sac() float64 {
-	return (executor.MejorRemRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180
+	return (executor.MejorRemRemunerativaBaseSACSemestre() / 2) * executor.DiasSemTrabajados() / 180
 }
 
 func (executor *Executor) SacNoRemunerativo() float64 {
