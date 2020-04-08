@@ -465,6 +465,11 @@ func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 	return
 }
 
+func diffDias(a time.Time, b time.Time) float64 {
+	days := math.Round(a.Sub(b).Hours() / 24)
+	return days
+}
+
 const (
 	mensual = 1
 	semestral = 2
