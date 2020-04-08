@@ -2,11 +2,14 @@ package executor
 
 import (
 	"fmt"
-	"github.com/jinzhu/now"
-	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 	"math"
 	"strconv"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/now"
+	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
+	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 )
 
 func (executor *Executor) TotalImporteRemunerativo() float64 {
@@ -36,7 +39,7 @@ func (executor *Executor) TotalAportesPatronalesMensual() float64 {
 
 func (executor *Executor) Sueldo() float64 {
 	var importe float64
-	legajoid := executor.context.Currentliquidacion.Legajoid;
+	legajoid := executor.context.Currentliquidacion.Legajoid
 	if legajoid == nil {
 		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
 		return 0
@@ -60,7 +63,7 @@ func (executor *Executor) ValorDiasVacaciones() float64 {
 
 func (executor *Executor) HorasMensuales() float64 {
 	var importe float64
-	legajoid := executor.context.Currentliquidacion.Legajoid;
+	legajoid := executor.context.Currentliquidacion.Legajoid
 	if legajoid == nil {
 		fmt.Println("Para realizar el calculo automatico de HorasMensuales, debe seleccionar primero un legajo")
 		return 0
@@ -89,7 +92,7 @@ func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
 	mesLiquidacion := fechaLiquidacion.Month()
 	diaLiquidacion := fechaLiquidacion.Day()
 
-	legajoid := liquidacion.Legajoid;
+	legajoid := liquidacion.Legajoid
 	if legajoid == nil {
 		println("Para realizar el calculo automatico de DiasMesTrabajadosFechaLiquidacion, debe seleccionar primero un legajo")
 		return 0
@@ -109,14 +112,14 @@ func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
 	diaAlta := fechaAlta.Day()
 
 	if anioLiquidacion == anioAlta && mesLiquidacion == mesAlta {
-		respuesta = math.Max(float64(diaLiquidacion - diaAlta) , 0)
+		respuesta = math.Max(float64(diaLiquidacion-diaAlta), 0)
 	}
 
-	if anioLiquidacion > anioAlta || (anioLiquidacion == anioAlta  && mesLiquidacion > mesAlta) {
+	if anioLiquidacion > anioAlta || (anioLiquidacion == anioAlta && mesLiquidacion > mesAlta) {
 		respuesta = float64(diaLiquidacion)
 	}
 
-	if anioLiquidacion < anioAlta || (anioLiquidacion == anioAlta  && mesLiquidacion < mesAlta) {
+	if anioLiquidacion < anioAlta || (anioLiquidacion == anioAlta && mesLiquidacion < mesAlta) {
 		respuesta = 0
 	}
 
@@ -136,7 +139,7 @@ func (executor *Executor) DiasMesTrabajadosFechaPeriodo() float64 {
 
 	maximoDiaMesPeriodoLiquidacion := now.New(periodoLiquidacion).EndOfMonth().Day()
 
-	legajoid := liquidacion.Legajoid;
+	legajoid := liquidacion.Legajoid
 	if legajoid == nil {
 		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
 		return 0
@@ -156,14 +159,14 @@ func (executor *Executor) DiasMesTrabajadosFechaPeriodo() float64 {
 	diaAlta := fechaAlta.Day()
 
 	if anioPeriodoLiquidacion == anioAlta && mesPeriodoLiquidacion == mesAlta {
-		respuesta = math.Max(float64(maximoDiaMesPeriodoLiquidacion - diaAlta) , 0)
+		respuesta = math.Max(float64(maximoDiaMesPeriodoLiquidacion-diaAlta), 0)
 	}
 
-	if anioPeriodoLiquidacion > anioAlta || (anioPeriodoLiquidacion == anioAlta  && mesPeriodoLiquidacion > mesAlta) {
+	if anioPeriodoLiquidacion > anioAlta || (anioPeriodoLiquidacion == anioAlta && mesPeriodoLiquidacion > mesAlta) {
 		respuesta = float64(maximoDiaMesPeriodoLiquidacion)
 	}
 
-	if anioPeriodoLiquidacion < anioAlta || (anioPeriodoLiquidacion == anioAlta  && mesPeriodoLiquidacion < mesAlta) {
+	if anioPeriodoLiquidacion < anioAlta || (anioPeriodoLiquidacion == anioAlta && mesPeriodoLiquidacion < mesAlta) {
 		respuesta = 0
 	}
 
@@ -178,7 +181,7 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 	anioLiquidacion := fechaLiquidacion.Year()
 	mesLiquidacion := fechaLiquidacion.Month()
 
-	legajoid := liquidacion.Legajoid;
+	legajoid := liquidacion.Legajoid
 	if legajoid == nil {
 		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
 		return 0
@@ -198,9 +201,9 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 
 	year, month, _, _, _, _ := diff(fechaLiquidacion, fechaAlta)
 
-	mesesDiferencia := math.Max(float64(year * 12 + month), 0)
+	mesesDiferencia := math.Max(float64(year*12+month), 0)
 
-	if anioLiquidacion < anioAlta || (anioLiquidacion == anioAlta  && mesLiquidacion < mesAlta) {
+	if anioLiquidacion < anioAlta || (anioLiquidacion == anioAlta && mesLiquidacion < mesAlta) {
 		return 0
 	}
 
@@ -260,7 +263,6 @@ func (executor *Executor) PromRemVariablesSemestre() float64 {
 func (executor *Executor) PromRemVariablesAnual() float64 {
 	return executor.calcularPromedioRemuneracionVariable(anual)
 }
-
 
 //AUXILIARES
 
@@ -373,7 +375,6 @@ func calculoNoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravar
 	return importeCalculado
 }
 
-
 func (executor *Executor) obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensualesOQuincenales() *[]structLiquidacion.Liquidacion {
 	var liquidaciones []structLiquidacion.Liquidacion
 	liquidacion := executor.context.Currentliquidacion
@@ -435,7 +436,7 @@ func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 
 const (
 	semestral = 1
-	anual = 2
+	anual     = 2
 )
 
 func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool) float64 {
@@ -456,4 +457,23 @@ func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion,
 	}
 
 	return importeCalculado
+}
+
+func (executor *Executor) AntiguedadResto() float64 {
+	liquidacion := executor.context.Currentliquidacion
+
+	var legajo structLegajo.Legajo
+
+	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
+		return 0
+	}
+
+	start := legajo.Fechaalta
+	end := liquidacion.Fecha
+
+	period := end.Sub(start)
+	days := int(period.Hours() / 24)
+	yearsRemainder := float64(days%365) / float64(365)
+
+	return yearsRemainder
 }
