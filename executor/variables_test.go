@@ -7,6 +7,7 @@ import (
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 	"github.com/xubiosueldos/framework/configuracion"
+	"math"
 	"os"
 	"testing"
 	"time"
@@ -472,6 +473,21 @@ func TestDiasEfectivamenteTrabajadosSemestre(t *testing.T) {
 
 	if respuesta != esperado {
 		t.Errorf("La funcion DiasEfectivamenteTrabajadosSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestAntiguedadResto(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := math.Round(0.37808*10000)/10000
+	respuesta := executor.AntiguedadResto()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion AntiguedadResto con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
 }

@@ -2,13 +2,13 @@ package executor
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
+	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"math"
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
-	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 )
 
@@ -310,6 +310,26 @@ func (executor *Executor) DiasEfectivamenteTrabajadosSemestre() float64 {
 	return executor.DiasSemTrabajados() - executor.obtenerDiasSegunConcepto(semestral, "DIAS_ACCIDENTE") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_ENFERMEDAD") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_FALTAS_INJUSTIFICADAS") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_DE_LICENCIA")
 }
 
+func (executor *Executor) AntiguedadResto() float64 {
+	liquidacion := executor.context.Currentliquidacion
+
+	var legajo structLegajo.Legajo
+
+	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
+		return 0
+	}
+
+	start := *legajo.Fechaalta
+	end := now.New(liquidacion.Fechaperiodoliquidacion).EndOfMonth()
+
+	period := end.Sub(start)
+	days := int(period.Hours() / 24)
+	yearsRemainder := float64(days%365) / float64(365)
+
+	return math.Round(yearsRemainder*10000)/10000
+}
+
+
 //AUXILIARES
 
 func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
@@ -544,21 +564,3 @@ func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion,
 	return importeCalculado
 }
 
-func (executor *Executor) AntiguedadResto() float64 {
-	liquidacion := executor.context.Currentliquidacion
-
-	var legajo structLegajo.Legajo
-
-	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
-		return 0
-	}
-
-	start := *legajo.Fechaalta
-	end := liquidacion.Fecha
-
-	period := end.Sub(start)
-	days := int(period.Hours() / 24)
-	yearsRemainder := float64(days%365) / float64(365)
-
-	return yearsRemainder
-}
