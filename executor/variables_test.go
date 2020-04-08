@@ -5,12 +5,12 @@ import (
 	"os"
 	"testing"
 	"time"
-
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 	"github.com/xubiosueldos/framework/configuracion"
+	"math"
 )
 
 var DB *gorm.DB
@@ -460,15 +460,90 @@ func TestDiasSemTrabajados(t *testing.T) {
 
 }
 
+func TestDiasEfectivamenteTrabajadosSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := float64(151)
+	respuesta := executor.DiasEfectivamenteTrabajadosSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion DiasEfectivamenteTrabajadosSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestAntiguedadResto(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := math.Round(0.37808*10000)/10000
+	respuesta := executor.AntiguedadResto()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion AntiguedadResto con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
 func TestFechaDeIngreso(t *testing.T) {
 
 	executor := getExecutorTest()
 
-	esperado := time.Date(2019, 9, 5, 3, 0, 0, 0, time.UTC)
-	respuesta := *executor.FechaDeIngreso()
+	esperado := time.Date(2019, 1, 14, 3, 0, 0, 0, time.UTC)
+	respuesta := executor.FechaDeIngreso()
 
 	if respuesta != esperado {
 		t.Errorf("La funcion FechaDeIngreso devuelve %s y se esperaba %s", respuesta, esperado)
+	}
+
+}
+
+func TestFechadeLiquidacion(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest() )
+
+	esperado := getFechaLiquidacionAntesDeAltaMismoMesTest()
+	respuesta := executor.FechadeLiquidacion()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion FechaDeIngreso devuelve %s y se esperaba %s", respuesta, esperado)
+	}
+
+}
+
+func TestFecIngHASTAFecLiq(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionDespuesDeAltaTest() )
+
+	esperado := float64(1.04)
+	respuesta := executor.FecIngHASTAFecLiq()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion FecIngHASTAFecLiq devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestMejorRemRemunerativaBaseSACSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := float64(306500)
+	respuesta := executor.MejorRemRemunerativaBaseSACSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion MejorRemRemunerativaSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
 }

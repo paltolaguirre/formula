@@ -2,39 +2,39 @@ package executor
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
+	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"math"
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
-	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 )
 
 func (executor *Executor) TotalImporteRemunerativo() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO", false, false)
 }
 
 func (executor *Executor) TotalHaberesNoRemunerativosMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_NO_REMUNERATIVO", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_NO_REMUNERATIVO", false, false)
 }
 
 func (executor *Executor) TotalDescuentosMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "DESCUENTO", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "DESCUENTO", false, false)
 }
 
 func (executor *Executor) TotalRetencionesMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "RETENCION", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "RETENCION", false, false)
 }
 
 func (executor *Executor) TotalAportesPatronalesMensual() float64 {
 
-	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL", false)
+	return calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "APORTE_PATRONAL", false, false)
 }
 
 func (executor *Executor) Sueldo() float64 {
@@ -84,28 +84,13 @@ func (executor *Executor) DiasMesTrabajadosFechaLiquidacion() float64 {
 
 	var respuesta float64 = 0
 
-	liquidacion := executor.context.Currentliquidacion
-
-	fechaLiquidacion := liquidacion.Fecha //No puede ser null
+	fechaLiquidacion := executor.FechadeLiquidacion()
 
 	anioLiquidacion := fechaLiquidacion.Year()
 	mesLiquidacion := fechaLiquidacion.Month()
 	diaLiquidacion := fechaLiquidacion.Day()
 
-	legajoid := liquidacion.Legajoid
-	if legajoid == nil {
-		println("Para realizar el calculo automatico de DiasMesTrabajadosFechaLiquidacion, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
+	fechaAlta := executor.FechaDeIngreso()
 
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()
@@ -139,20 +124,7 @@ func (executor *Executor) DiasMesTrabajadosFechaPeriodo() float64 {
 
 	maximoDiaMesPeriodoLiquidacion := now.New(periodoLiquidacion).EndOfMonth().Day()
 
-	legajoid := liquidacion.Legajoid
-	if legajoid == nil {
-		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
+	fechaAlta := executor.FechaDeIngreso()
 
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()
@@ -181,23 +153,9 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 	anioLiquidacion := fechaLiquidacion.Year()
 	mesLiquidacion := fechaLiquidacion.Month()
 
-	legajoid := liquidacion.Legajoid
-	if legajoid == nil {
-		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
+	fechaAlta := executor.FechaDeIngreso()
 	anioAlta := fechaAlta.Year()
 	mesAlta := fechaAlta.Month()
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
 
 	year, month, _, _, _, _ := diff(fechaLiquidacion, fechaAlta)
 
@@ -211,7 +169,7 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 }
 
 func (executor *Executor) MejorRemRemunerativaSemestre() float64 {
-	return executor.calcularMejorRemunerativa(semestral, false)
+	return executor.calcularMejorRemunerativa(semestral, false, false)
 }
 
 func (executor *Executor) MejorRemNoRemunerativaSemestre() float64 {
@@ -237,7 +195,7 @@ func (executor *Executor) MejorRemNoRemunerativaSemestre() float64 {
 }
 
 func (executor *Executor) MejorRemNormalYHabitualSemestre() float64 {
-	return executor.calcularMejorRemunerativa(semestral, true)
+	return executor.calcularMejorRemunerativa(semestral, true, false)
 }
 
 func (executor *Executor) MejorRemTotalSinRemVarSemestre() float64 {
@@ -284,20 +242,7 @@ func (executor *Executor) DiasSemTrabajados() float64 {
 		now.New(primerDiaDelSemestreLiquidacion).AddDate(0, 6, 0)
 	}
 
-	legajoid := liquidacionActual.Legajoid
-	if legajoid == nil {
-		fmt.Println("Para realizar el calculo automatico de Sueldo, debe seleccionar primero un legajo")
-		return 0
-	}
-
-	var fechaAlta time.Time
-	sql := "SELECT fechaalta from legajo where id = " + strconv.Itoa(*legajoid)
-	err := executor.db.Raw(sql).Row().Scan(&fechaAlta)
-
-	if err != nil {
-		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*legajoid))
-		return 0
-	}
+	fechaAlta := executor.FechaDeIngreso()
 
 	if fechaAlta.Before(primerDiaDelSemestreLiquidacion) {
 		return diffDias(ultimoDiaDelMesPeriodoLiquidacion, primerDiaDelSemestreLiquidacion)
@@ -306,9 +251,37 @@ func (executor *Executor) DiasSemTrabajados() float64 {
 	}
 }
 
+func (executor *Executor) DiasEfectivamenteTrabajadosSemestre() float64 {
+	return executor.DiasSemTrabajados() - executor.obtenerDiasSegunConcepto(semestral, "DIAS_ACCIDENTE") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_ENFERMEDAD") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_FALTAS_INJUSTIFICADAS") - executor.obtenerDiasSegunConcepto(semestral, "DIAS_DE_LICENCIA")
+}
+
+func (executor *Executor) AntiguedadResto() float64 {
+
+	liquidacion := executor.context.Currentliquidacion
+
+	start := executor.FechaDeIngreso()
+	end := now.New(liquidacion.Fechaperiodoliquidacion).EndOfMonth()
+
+	period := end.Sub(start)
+	days := int(period.Hours() / 24)
+	yearsRemainder := float64(days%365) / float64(365)
+
+	return math.Round(yearsRemainder*10000)/10000
+}
+
+func (executor *Executor) MejorRemRemunerativaBaseSACSemestre() float64 {
+	return executor.calcularMejorRemunerativa(semestral, false, true)
+}
+
+
+
 //AUXILIARES
 
 func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
+	return executor.obtenerDiasSegunConcepto(tipo, "DIAS_DE_LICENCIA")
+}
+
+func (executor *Executor) obtenerDiasSegunConcepto(tipo int, conceptoCodigo string) float64 {
 	liquidacionActual := executor.context.Currentliquidacion
 	var resultado float64
 	periodoLiquidacion := liquidacionActual.Fechaperiodoliquidacion //No puede ser null
@@ -318,15 +291,21 @@ func (executor *Executor) obtenerDiasLicencia(tipo int) float64 {
 
 	mesInicial := devolverMesInicial(tipo, mesPeriodoLiquidacion)
 
-	sql := fmt.Sprintf("select sum(importe * cantidad) from novedad where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid = -34", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid)
+	sql := fmt.Sprintf("select coalesce(sum(coalesce(cantidad, 0)), 0) from novedad where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid in (SELECT id from concepto where codigo = '%s')", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid, conceptoCodigo)
 	err := executor.db.Raw(sql).Row().Scan(&resultado)
 
 	if err != nil {
-
+		fmt.Printf("No se pudo consultar la cantidad de %s", conceptoCodigo)
+		fmt.Println()
 	}
 
 	return resultado
 }
+
+
+
+
+
 
 func (executor *Executor) calcularPromedioRemuneracionVariable(tipo int) float64 {
 
@@ -365,7 +344,7 @@ func obtenerRemuneracionesVariables(liquidacion structLiquidacion.Liquidacion) f
 	return importeCalculado
 }
 
-func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable bool) float64 {
+func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable bool, soloBaseSac bool) float64 {
 
 	liquidacionActual := executor.context.Currentliquidacion
 	mesliquidacion := liquidacionActual.Fechaperiodoliquidacion.Month()
@@ -376,7 +355,7 @@ func (executor *Executor) calcularMejorRemunerativa(tipo int, ignoraRemVariable 
 		var acumuladorMensual float64 = 0
 		for _, liquidacion := range *liquidaciones {
 			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
-				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable)
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable, soloBaseSac) - calculoDescuentos(liquidacion, ignoraRemVariable, soloBaseSac)
 			}
 		}
 		if mejorRemuneracion < acumuladorMensual {
@@ -398,7 +377,7 @@ func (executor *Executor) calcularMejorTotal(tipo int, ignoraRemVariable bool) f
 		var acumuladorMensual float64 = 0
 		for _, liquidacion := range *liquidaciones {
 			if liquidacion.Fechaperiodoliquidacion.Month() == mes {
-				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable) - calculoDescuentos(liquidacion, ignoraRemVariable) + calculoNoRemunerativos(liquidacion, ignoraRemVariable)
+				acumuladorMensual += calculoRemunerativos(liquidacion, ignoraRemVariable, false) - calculoDescuentos(liquidacion, ignoraRemVariable, false) + calculoNoRemunerativos(liquidacion, ignoraRemVariable)
 			}
 		}
 		if mejorRemuneracion < acumuladorMensual {
@@ -422,21 +401,21 @@ func devolverMesInicial(tipo int, mesliquidacion time.Month) time.Month {
 	return time.January
 }
 
-func calculoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_REMUNERATIVO", ignoravariables)
+func calculoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool, soloBaseSac bool) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_REMUNERATIVO", ignoravariables, soloBaseSac)
 
 	return importeCalculado
 }
 
-func calculoDescuentos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "DESCUENTO", ignoravariables)
+func calculoDescuentos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool, soloBaseSac bool) float64 {
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "DESCUENTO", ignoravariables, soloBaseSac)
 
 	return importeCalculado
 }
 
 func calculoNoRemunerativos(liquidacion structLiquidacion.Liquidacion, ignoravariables bool) float64 {
 
-	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_NO_REMUNERATIVO", ignoravariables)
+	importeCalculado := calcularImporteSegunTipoConcepto(liquidacion, "IMPORTE_NO_REMUNERATIVO", ignoravariables, false)
 	return importeCalculado
 }
 
@@ -510,7 +489,7 @@ const (
 	anual     = 3
 )
 
-func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool) float64 {
+func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion, tipoConceptoCodigo string, ignoravariables bool, soloBaseSac bool) float64 {
 	var importeCalculado float64
 	var importeNil *float64
 
@@ -518,9 +497,11 @@ func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion,
 		liquidacionitem := liquidacion.Liquidacionitems[i]
 		if liquidacionitem.DeletedAt == nil {
 			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
-				if !ignoravariables || !liquidacionitem.Concepto.Esremvariable {
-					if liquidacionitem.Importeunitario != importeNil {
-						importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+				if !soloBaseSac || liquidacionitem.Concepto.Basesac {
+					if !ignoravariables || !liquidacionitem.Concepto.Esremvariable {
+						if liquidacionitem.Importeunitario != importeNil {
+							importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
+						}
 					}
 				}
 			}
@@ -530,34 +511,28 @@ func calcularImporteSegunTipoConcepto(liquidacion structLiquidacion.Liquidacion,
 	return importeCalculado
 }
 
-func (executor *Executor) AntiguedadResto() float64 {
-	liquidacion := executor.context.Currentliquidacion
-
-	var legajo structLegajo.Legajo
-
-	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
-		return 0
-	}
-
-	start := *legajo.Fechaalta
-	end := liquidacion.Fecha
-
-	period := end.Sub(start)
-	days := int(period.Hours() / 24)
-	yearsRemainder := float64(days%365) / float64(365)
-
-	return yearsRemainder
-}
 
 func (executor *Executor) FechaDeIngreso() time.Time {
 	liquidacion := executor.context.Currentliquidacion
 
 	var legajo structLegajo.Legajo
 
-	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajo.ID).Error; gorm.IsRecordNotFoundError(err) {
+	if err := executor.db.Set("gorm:auto_preload", true).First(&legajo, "id = ?", liquidacion.Legajoid).Error; gorm.IsRecordNotFoundError(err) {
 		t := time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
+		fmt.Println("Error al buscar la fechaalta para el legajo " + strconv.Itoa(*liquidacion.Legajoid))
 		return t
 	}
 
 	return *legajo.Fechaalta
+}
+
+func (executor *Executor) FechadeLiquidacion() time.Time {
+	liquidacion := executor.context.Currentliquidacion
+
+	return liquidacion.Fecha
+}
+
+
+func (executor *Executor) FecIngHASTAFecLiq() float64 {
+	return math.Round(((executor.FechadeLiquidacion().Sub(executor.FechaDeIngreso()).Hours() / 24) / 365) * 100 ) / 100
 }
