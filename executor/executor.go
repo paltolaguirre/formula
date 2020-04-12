@@ -118,6 +118,8 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 			value = valueResolved.Valuenumber
 		case "string":
 			value = valueResolved.Valuestring
+		case "bool":
+			value = valueResolved.Valueboolean
 			/*default:
 			jsonbody, err := json.Marshal(valueResolved.Valueobject)
 			if err != nil {
@@ -133,14 +135,13 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 	result = new(structFunction.Value)
 	if len(results) == 1 {
 		paramType := m.Type().Out(0).Name()
+		val := results[0]
 		switch paramType {
 		case "float64":
-			val := results[0]
 			result.Valuenumber = val.Float()
 		case "string":
-			result.Valuestring = results[0].String()
+			result.Valuestring = val.String()
 		case "bool":
-			val := results[0]
 			result.Valueboolean = val.Bool()
 		case "Time":
 			val := results[0]
