@@ -26,6 +26,69 @@ func (executor *Executor) GetParamValue(paramName string) float64 {
 	return result
 }
 
+func (executor *Executor) GetConceptValue(id float64) float64 {
+	liquidacion := executor.context.Currentliquidacion
+
+	for _, item := range liquidacion.Liquidacionitems {
+		if item.Concepto.ID == int(id) {
+			return *item.Importeunitario
+		}
+	}
+
+	return 0
+}
+
+func (executor *Executor) If(expression bool, valueTrue float64, valueFalse float64) float64 {
+	if expression {
+		return valueTrue
+	}
+
+	return valueFalse
+}
+
+/* Comparison operators */
+func (executor *Executor) Equality(val1 float64, val2 float64) bool {
+	return val1 == val2
+}
+
+func (executor *Executor) Inequality(val1 bool, val2 bool) bool {
+	return val1 != val2
+}
+
+func (executor *Executor) Greater(val1 float64, val2 float64) bool {
+	return val1 > val2
+}
+
+func (executor *Executor) GreaterEqual(val1 float64, val2 float64) bool {
+	return val1 >= val2
+}
+
+func (executor *Executor) Less(val1 float64, val2 float64) bool {
+	return val1 < val2
+}
+
+func (executor *Executor) LessEqual(val1 float64, val2 float64) bool {
+	return val1 <= val2
+}
+
+/* Logical operators */
+func (executor *Executor) Not(val bool) bool {
+	return !val
+}
+
+func (executor *Executor) And(val1 bool, val2 bool) bool {
+	return val1 && val2
+}
+
+func (executor *Executor) Or(val1 bool, val2 bool) bool {
+	return val1 || val2
+}
+
+/* Arithmetic operators */
+func (executor *Executor) Percent(val float64, percent float64) float64 {
+	return val * (percent / 100)
+}
+
 func (executor *Executor) Sum(val1 float64, val2 float64) float64 {
 	return val1 + val2
 }
@@ -34,13 +97,12 @@ func (executor *Executor) Diff(val1 float64, val2 float64) float64 {
 	return val1 - val2
 }
 
-/* comparison operators */
-func (executor *Executor) Greater(val1 float64, val2 float64) bool {
-	return val1 > val2
+func (executor *Executor) Div(val1 float64, val2 float64) float64 {
+	return val1 / val2
 }
 
-func (executor *Executor) GreaterEqual(val1 float64, val2 float64) bool {
-	return val1 >= val2
+func (executor *Executor) Multi(val1 float64, val2 float64) float64 {
+	return val1 * val2
 }
 
 /* FORMULAS DE XUBIO */
@@ -165,7 +227,7 @@ func (executor *Executor) SacSinImd() float64 {
 }
 
 func (executor *Executor) Sac() float64 {
-	return (executor.MejorRemRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180
+	return (executor.MejorRemRemunerativaBaseSACSemestre() / 2) * executor.DiasSemTrabajados() / 180
 }
 
 func (executor *Executor) SacNoRemunerativo() float64 {
