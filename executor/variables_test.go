@@ -346,7 +346,7 @@ func TestMejorRemNormalYHabitualSemestre(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(306500)
+	esperado := float64(296500)
 	respuesta := executor.MejorRemNormalYHabitualSemestre()
 
 	if respuesta != esperado {
@@ -361,7 +361,7 @@ func TestMejorRemTotalSinRemVarSemestre(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(306500)
+	esperado := float64(296500)
 	respuesta := executor.MejorRemTotalSinRemVarSemestre()
 
 	if respuesta != esperado {
@@ -376,7 +376,7 @@ func TestMejorRemTotalSinRemVarAnual(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(306500)
+	esperado := float64(296500)
 	respuesta := executor.MejorRemTotalSinRemVarAnual()
 
 	if respuesta != esperado {
@@ -421,7 +421,7 @@ func TestPromRemVariablesSemestre(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(0)
+	esperado := float64(10000)
 	respuesta := executor.PromRemVariablesSemestre()
 
 	if respuesta != esperado {
@@ -436,7 +436,7 @@ func TestPromRemVariablesAnual(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(0)
+	esperado := float64(10000)
 	respuesta := executor.PromRemVariablesAnual()
 
 	if respuesta != esperado {
