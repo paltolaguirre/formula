@@ -273,7 +273,7 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest())
 
-	esperado := float64(0)
+	esperado := float64(1)
 	respuesta := executor.CantidadMesesTrabajados()
 
 	if respuesta != esperado {
@@ -291,7 +291,7 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionDespuesDeAltaTest())
 
-	esperado = float64(12)
+	esperado = float64(13)
 	respuesta = executor.CantidadMesesTrabajados()
 
 	if respuesta != esperado {
@@ -486,7 +486,7 @@ func TestDiasEfectivamenteTrabajadosSemestre(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(152)
+	esperado := float64(140)
 	respuesta := executor.DiasEfectivamenteTrabajadosSemestre()
 
 	if respuesta != esperado {
@@ -564,6 +564,37 @@ func TestMejorRemRemunerativaBaseSACSemestre(t *testing.T) {
 
 	if respuesta != esperado {
 		t.Errorf("La funcion MejorRemRemunerativaSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+
+func TestDiasLicenciaMes(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := float64(0)
+	respuesta := executor.DiasLicenciaMes()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion DiasLicenciaMes con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func TestDiasLicenciaSemestre(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := float64(2)
+	respuesta := executor.DiasLicenciaSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion DiasLicenciaSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
 }
