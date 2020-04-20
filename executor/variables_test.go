@@ -310,6 +310,16 @@ func getPeriodoLiquidacionMayo2020() time.Time {
 	return fecha
 }
 
+func getPeriodoLiquidacionJulio2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-07-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionJulio2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
 func TestMejorRemRemunerativaSemestre(t *testing.T) {
 
 	executor := getExecutorTest()
@@ -451,11 +461,21 @@ func TestDiasSemTrabajados(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(151)
+	esperado := float64(152)
 	respuesta := executor.DiasSemTrabajados()
 
 	if respuesta != esperado {
 		t.Errorf("La funcion DiasSemTrabajados con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionJulio2020())
+
+	esperado = float64(31)
+	respuesta = executor.DiasSemTrabajados()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion DiasSemTrabajados con getPeriodoLiquidacionJulio2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
 }
@@ -466,7 +486,7 @@ func TestDiasEfectivamenteTrabajadosSemestre(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(151)
+	esperado := float64(152)
 	respuesta := executor.DiasEfectivamenteTrabajadosSemestre()
 
 	if respuesta != esperado {
