@@ -239,7 +239,7 @@ func (executor *Executor) DiasSemTrabajados() float64 {
 	primerDiaDelSemestreLiquidacion := now.New(fechaPeriodoliquidacion).BeginningOfYear()
 
 	if fechaPeriodoliquidacion.Month() >= time.July {
-		now.New(primerDiaDelSemestreLiquidacion).AddDate(0, 6, 0)
+		primerDiaDelSemestreLiquidacion = now.New(primerDiaDelSemestreLiquidacion).AddDate(0, 6, 0)
 	}
 
 	fechaAlta := executor.FechaDeIngreso()
@@ -479,7 +479,7 @@ func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
 }
 
 func diffDias(a time.Time, b time.Time) float64 {
-	days := math.Trunc(a.Sub(b).Hours() / 24)
+	days := math.Round(a.Sub(b).Hours() / 24)
 	return days
 }
 
