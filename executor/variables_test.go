@@ -273,7 +273,7 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest())
 
-	esperado := float64(0)
+	esperado := float64(1)
 	respuesta := executor.CantidadMesesTrabajados()
 
 	if respuesta != esperado {
@@ -291,7 +291,7 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionDespuesDeAltaTest())
 
-	esperado = float64(12)
+	esperado = float64(13)
 	respuesta = executor.CantidadMesesTrabajados()
 
 	if respuesta != esperado {

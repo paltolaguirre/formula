@@ -165,7 +165,7 @@ func (executor *Executor) CantidadMesesTrabajados() float64 {
 		return 0
 	}
 
-	return mesesDiferencia
+	return mesesDiferencia + 1
 }
 
 func (executor *Executor) MejorRemRemunerativaSemestre() float64 {
