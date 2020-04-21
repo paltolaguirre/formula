@@ -3,6 +3,7 @@ package executor
 import (
 	"errors"
 	"fmt"
+	"github.com/xubiosueldos/conexionBD/Concepto/structConcepto"
 	"reflect"
 	"time"
 
@@ -19,6 +20,7 @@ type Executor struct {
 
 type Context struct {
 	Currentliquidacion structLiquidacion.Liquidacion `json:"currentliquidacion"`
+	Currentconcepto structConcepto.Concepto `json:"currentconcepto"`
 }
 
 func NewExecutor(db *gorm.DB, context *Context) *Executor {
