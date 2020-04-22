@@ -155,3 +155,4 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 
 	return result, nil
 }
+
