@@ -224,7 +224,7 @@ func (executor *Executor) IntegracionMesDespido() float64 {
 }
 
 func (executor *Executor) SacSinImd() float64 {
-	return executor.IntegracionMesDespido() / 12
+	return math.Round(math.Max(executor.IntegracionMesDespido() / 12, 0) * 100) / 100
 }
 
 func (executor *Executor) Sac() float64 {
