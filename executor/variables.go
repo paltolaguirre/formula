@@ -298,7 +298,7 @@ func (executor *Executor) obtenerDiasSegunConcepto(tipo int, conceptoid int) flo
 
 	mesInicial := devolverMesInicial(tipo, mesPeriodoLiquidacion)
 
-	sql := fmt.Sprintf("select coalesce(sum(coalesce(cantidad, 0)), 0) from liquidacionitem left join liquidacion on liquidacionitem.liquidacionid = liquidacion.id where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid in (%d)", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid, conceptoid)
+	sql := fmt.Sprintf("select coalesce(sum(coalesce(cantidad, 0)), 0) from liquidacionitem left join liquidacion on liquidacionitem.liquidacionid = liquidacion.id where extract(MONTH from fecha) < %d and extract(MONTH from fecha) >= %d and extract(YEAR from fecha) = %d and legajoid = %d and conceptoid in (%d) and liquidacionid != %d", mesPeriodoLiquidacion, mesInicial, anioPeriodoLiquidacion, *liquidacionActual.Legajoid, conceptoid, liquidacionActual.ID)
 	err := executor.db.Raw(sql).Row().Scan(&resultado)
 
 	if err != nil {
@@ -306,7 +306,18 @@ func (executor *Executor) obtenerDiasSegunConcepto(tipo int, conceptoid int) flo
 		fmt.Println()
 	}
 
-	return resultado
+	return resultado + executor.getDiasLiquidacionActualSegunConcepto(conceptoid)
+}
+
+func (executor *Executor) getDiasLiquidacionActualSegunConcepto(conceptoid int) float64 {
+	cantidadTotal := 0.0
+	for _, liquidacionItem := range executor.context.Currentliquidacion.Liquidacionitems {
+		if *liquidacionItem.Conceptoid == conceptoid {
+			cantidadTotal += liquidacionItem.Cantidad
+		}
+	}
+
+	return cantidadTotal
 }
 
 func (executor *Executor) calcularPromedioRemuneracionVariable(tipo int) float64 {

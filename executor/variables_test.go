@@ -575,7 +575,7 @@ func TestDiasLicenciaMes(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(0)
+	esperado := float64(2)
 	respuesta := executor.DiasLicenciaMes()
 
 	if respuesta != esperado {
