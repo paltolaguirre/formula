@@ -220,7 +220,7 @@ func (executor *Executor) IntegracionMesDespido() float64 {
 	diasMesTrabajados := executor.DiasMesTrabajadosFechaLiquidacion()
 	jornal := executor.Jornal()
 
-	return (30 - diasMesTrabajados) * jornal
+	return math.Round(math.Max((30 - diasMesTrabajados) * jornal, 0) * 100) / 100
 }
 
 func (executor *Executor) SacSinImd() float64 {

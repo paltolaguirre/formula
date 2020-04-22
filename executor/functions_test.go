@@ -34,3 +34,17 @@ func TestSacNoRemunerativo(t *testing.T) {
 	}
 
 }
+
+func TestIntegracionMesDespido(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := math.Round(386666.670000*100)/100
+	respuesta := executor.IntegracionMesDespido()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion IntegracionMesDespido con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
