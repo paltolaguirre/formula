@@ -62,3 +62,17 @@ func TestSacSinImd(t *testing.T) {
 		t.Errorf("La funcion SacSinImd con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 }
+
+func TestHoraExtra50(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
+
+	esperado := math.Round(6000*100)/100
+	respuesta := executor.HoraExtra50()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion HoraExtra50 con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
