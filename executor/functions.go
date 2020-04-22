@@ -4,6 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
+	"math"
 )
 
 type ContextLiquidacion struct {
@@ -219,19 +220,19 @@ func (executor *Executor) IntegracionMesDespido() float64 {
 	diasMesTrabajados := executor.DiasMesTrabajadosFechaLiquidacion()
 	jornal := executor.Jornal()
 
-	return (30 - diasMesTrabajados) * jornal
+	return math.Round(math.Max((30 - diasMesTrabajados) * jornal, 0) * 100) / 100
 }
 
 func (executor *Executor) SacSinImd() float64 {
-	return executor.IntegracionMesDespido() / 12
+	return math.Round(math.Max(executor.IntegracionMesDespido() / 12, 0) * 100) / 100
 }
 
 func (executor *Executor) Sac() float64 {
-	return (executor.MejorRemRemunerativaBaseSACSemestre() / 2) * executor.DiasSemTrabajados() / 180
+	return math.Round((executor.MejorRemRemunerativaBaseSACSemestre() / 2) * executor.DiasSemTrabajados() / 180 * 100) / 100
 }
 
 func (executor *Executor) SacNoRemunerativo() float64 {
-	return (executor.MejorRemNoRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180
+	return math.Round((executor.MejorRemNoRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180 * 100) / 100
 }
 
 /*
