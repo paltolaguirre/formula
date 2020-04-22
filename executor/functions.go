@@ -232,7 +232,7 @@ func (executor *Executor) Sac() float64 {
 }
 
 func (executor *Executor) SacNoRemunerativo() float64 {
-	return (executor.MejorRemNoRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180
+	return math.Round((executor.MejorRemNoRemunerativaSemestre() / 2) * executor.DiasSemTrabajados() / 180 * 100) / 100
 }
 
 /*
