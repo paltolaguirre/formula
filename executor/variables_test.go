@@ -501,7 +501,7 @@ func TestAntiguedadResto(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := math.Round(0.37808*10000)/10000
+	esperado := math.Round(0.37808*100)/100
 	respuesta := executor.AntiguedadResto()
 
 	if respuesta != esperado {
