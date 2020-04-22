@@ -4,6 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/conexionBD/Legajo/structLegajo"
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
+	"math"
 )
 
 type ContextLiquidacion struct {
@@ -227,7 +228,7 @@ func (executor *Executor) SacSinImd() float64 {
 }
 
 func (executor *Executor) Sac() float64 {
-	return (executor.MejorRemRemunerativaBaseSACSemestre() / 2) * executor.DiasSemTrabajados() / 180
+	return math.Round((executor.MejorRemRemunerativaBaseSACSemestre() / 2) * executor.DiasSemTrabajados() / 180 * 100) / 100
 }
 
 func (executor *Executor) SacNoRemunerativo() float64 {
