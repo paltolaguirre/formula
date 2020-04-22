@@ -273,7 +273,7 @@ func (executor *Executor) AntiguedadResto() float64 {
 	days := int(period.Hours() / 24)
 	yearsRemainder := float64(days%365) / float64(365)
 
-	return math.Round(yearsRemainder*10000)/10000
+	return math.Round(yearsRemainder*100)/100
 }
 
 func (executor *Executor) MejorRemRemunerativaBaseSACSemestre() float64 {
