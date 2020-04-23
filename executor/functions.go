@@ -199,13 +199,13 @@ func (executor *Executor) Preaviso() float64 {
 		return 0
 	}
 
-	liquidacionDate := liquidacion.Fecha
+	year, month, _, _, _, _ := diff(liquidacion.Fecha, *legajo.Fechaalta)
 
-	if (liquidacionDate.Month() - legajo.Fechaalta.Month()) <= 3 {
+	if year == 0 && month <= 3 {
 		return executor.Sueldo() / 2
 	}
 
-	if (liquidacionDate.Year() - legajo.Fechaalta.Year()) <= 5 {
+	if year < 5 || (year == 5 && month == 0){
 		return executor.Sueldo()
 	}
 
