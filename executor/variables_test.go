@@ -310,6 +310,66 @@ func getPeriodoLiquidacionMayo2020() time.Time {
 	return fecha
 }
 
+func getFechaLiquidacionEnero2019() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2019-01-01")
+
+	if err != nil {
+		fmt.Println("getFechaLiquidacionEnero2019 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getFechaLiquidacionSeptiembre2019() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2019-09-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionSeptiembre2019 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getFechaLiquidacionEnero2021() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2021-01-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionEnero2021 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getFechaLiquidacionSeptiembre2021() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2021-09-01")
+
+	if err != nil {
+		fmt.Println("getFechaLiquidacionSeptiembre2021 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getFechaLiquidacionEnero2025() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2025-01-01")
+
+	if err != nil {
+		fmt.Println("getFechaLiquidacionEnero2025 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getFechaLiquidacionSeptiembre2025() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2025-09-01")
+
+	if err != nil {
+		fmt.Println("getFechaLiquidacionSeptiembre2025 mal creado ", err)
+	}
+
+	return fecha
+}
+
 func getPeriodoLiquidacionJulio2020() time.Time {
 	fecha, err := time.Parse("2006-01-02", "2020-07-01")
 

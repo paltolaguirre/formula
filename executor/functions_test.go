@@ -76,3 +76,62 @@ func TestHoraExtra50(t *testing.T) {
 		t.Errorf("La funcion HoraExtra50 con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 }
+
+func TestPreaviso(t *testing.T) {
+
+	executor := getExecutorTest()
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionEnero2019())
+
+	esperado := executor.Sueldo()/2
+	respuesta := executor.Preaviso()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion Preaviso con getFechaLiquidacionEnero2019 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionSeptiembre2019())
+
+	esperado = executor.Sueldo()
+	respuesta = executor.Preaviso()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion Preaviso con getFechaLiquidacionSeptiembre2019 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionEnero2021())
+
+	esperado = executor.Sueldo()
+	respuesta = executor.Preaviso()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion Preaviso con getFechaLiquidacionEnero2021 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionSeptiembre2021())
+
+	esperado = executor.Sueldo()
+	respuesta = executor.Preaviso()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion Preaviso con getFechaLiquidacionSeptiembre2021 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionSeptiembre2025())
+
+	esperado = executor.Sueldo() * 2
+	respuesta = executor.Preaviso()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion Preaviso con getFechaLiquidacionSeptiembre2025 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionEnero2025())
+
+	esperado = executor.Sueldo() * 2
+	respuesta = executor.Preaviso()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion Preaviso con getFechaLiquidacionEnero2025 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+}
