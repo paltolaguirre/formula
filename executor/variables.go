@@ -336,7 +336,7 @@ func (executor *Executor) calcularPromedioRemuneracionVariable(tipo int) float64
 			}
 		}
 	}
-	return total / cantidadMeses
+	return math.Round(total / cantidadMeses * 100) / 100
 }
 
 func (executor *Executor) obtenerRemuneracionesVariables(liquidacion structLiquidacion.Liquidacion) float64 {
