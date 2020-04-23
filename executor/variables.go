@@ -509,6 +509,7 @@ func (executor *Executor) calcularImporteSegunTipoConcepto(liquidacion structLiq
 	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
 		liquidacionitem := liquidacion.Liquidacionitems[i]
 		if liquidacionitem.DeletedAt == nil && *liquidacionitem.Conceptoid != executor.context.Currentconcepto.ID{
+			executor.db.Set("gorm:auto_preload", true).First(&liquidacionitem.Concepto, "id = ?", *liquidacionitem.Conceptoid)
 			if liquidacionitem.Concepto.Tipoconcepto.Codigo == tipoConceptoCodigo {
 				if !soloBaseSac || liquidacionitem.Concepto.Basesac {
 					if !ignoravariables || !liquidacionitem.Concepto.Esremvariable {
