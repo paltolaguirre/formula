@@ -213,7 +213,7 @@ func (executor *Executor) Preaviso() float64 {
 }
 
 func (executor *Executor) SacSinPreaviso() float64 {
-	return executor.Preaviso() / 12
+	return math.Round(executor.Preaviso() / 12 * 100) / 100
 }
 
 func (executor *Executor) IntegracionMesDespido() float64 {
