@@ -618,7 +618,7 @@ func TestPromRemVariablesAnual(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(10000)
+	esperado := float64(6000)
 	respuesta := executor.PromRemVariablesAnual()
 
 	if respuesta != esperado {
