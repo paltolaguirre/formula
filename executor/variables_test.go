@@ -14,14 +14,22 @@ import (
 )
 
 var DB *gorm.DB
+var configuracionS configuracion.Configuracion
 
 func TestMain(m *testing.M) {
-	configuracion := configuracion.GetInstance()
-	tenantPrueba := configuracion.Tenanttest
-	DB = conexionBD.ObtenerDB(tenantPrueba)
-	defer conexionBD.CerrarDB(DB)
+	configuracionS = configuracion.GetInstance()
+
 	os.Exit(m.Run())
 
+}
+
+func setupTest() {
+	tenantPrueba := configuracionS.Tenanttest
+	DB = conexionBD.ObtenerDB(tenantPrueba)
+}
+
+func afterTest() {
+	conexionBD.CerrarDB(DB)
 }
 
 func getExecutorTest() Executor {
@@ -39,6 +47,9 @@ func getExecutorTest() Executor {
 
 func TestSueldo(t *testing.T) {
 
+	setupTest()
+	defer afterTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := float64(400000)
@@ -50,7 +61,8 @@ func TestSueldo(t *testing.T) {
 }
 
 func TestHorasMensuales(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	respuesta := executor.HorasMensuales()
@@ -63,7 +75,8 @@ func TestHorasMensuales(t *testing.T) {
 }
 
 func TestDiasMesTrabajadosFechaLiquidacion(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaTest())
@@ -161,7 +174,8 @@ func getFechaLiquidacionAntesDeAltaMismoMesTest() time.Time {
 }
 
 func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getFechaPeriodoLiquidacionAntesDeAltaTest())
@@ -196,7 +210,8 @@ func TestDiasMesTrabajadosFechaPeriodo(t *testing.T) {
 }
 
 func TestTotalHaberesNoRemunerativosMensual(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := float64(30000)
@@ -208,7 +223,8 @@ func TestTotalHaberesNoRemunerativosMensual(t *testing.T) {
 }
 
 func TestTotalImporteRemunerativo(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := float64(120000)
@@ -220,7 +236,8 @@ func TestTotalImporteRemunerativo(t *testing.T) {
 }
 
 func TestTotalDescuentosMensual(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := float64(7500)
@@ -232,7 +249,8 @@ func TestTotalDescuentosMensual(t *testing.T) {
 }
 
 func TestTotalRetencionesMensual(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := float64(14625)
@@ -244,7 +262,8 @@ func TestTotalRetencionesMensual(t *testing.T) {
 }
 
 func TestTotalAportesPatronalesMensual(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := float64(3000)
@@ -256,7 +275,8 @@ func TestTotalAportesPatronalesMensual(t *testing.T) {
 }
 
 func TestValorDiasVacaciones(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := float64(16000)
@@ -268,7 +288,8 @@ func TestValorDiasVacaciones(t *testing.T) {
 }
 
 func TestCantidadMesesTrabajados(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest())
@@ -301,6 +322,7 @@ func TestCantidadMesesTrabajados(t *testing.T) {
 }
 
 func getPeriodoLiquidacionMayo2020() time.Time {
+
 	fecha, err := time.Parse("2006-01-02", "2020-05-01")
 
 	if err != nil {
@@ -309,6 +331,48 @@ func getPeriodoLiquidacionMayo2020() time.Time {
 
 	return fecha
 }
+
+func getPeriodoLiquidacionAbril2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-04-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionMayo2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
+
+func getPeriodoLiquidacionMarzo2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-03-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionMayo2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getPeriodoLiquidacionFebrero2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-02-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionMayo2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getPeriodoLiquidacionEnero2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-01-01")
+
+	if err != nil {
+		fmt.Println("getPeriodoLiquidacionMayo2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
 
 func getFechaLiquidacionEnero2019() time.Time {
 	fecha, err := time.Parse("2006-01-02", "2019-01-01")
@@ -381,6 +445,8 @@ func getPeriodoLiquidacionJulio2020() time.Time {
 }
 
 func TestMejorRemRemunerativaSemestre(t *testing.T) {
+	setupTest()
+	defer afterTest()
 
 	executor := getExecutorTest()
 
@@ -396,6 +462,8 @@ func TestMejorRemRemunerativaSemestre(t *testing.T) {
 }
 
 func TestMejorRemNoRemunerativaSemestre(t *testing.T) {
+	setupTest()
+	defer afterTest()
 
 	executor := getExecutorTest()
 
@@ -411,7 +479,8 @@ func TestMejorRemNoRemunerativaSemestre(t *testing.T) {
 }
 
 func TestMejorRemNormalYHabitualSemestre(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -426,7 +495,8 @@ func TestMejorRemNormalYHabitualSemestre(t *testing.T) {
 }
 
 func TestMejorRemTotalSinRemVarSemestre(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -441,7 +511,8 @@ func TestMejorRemTotalSinRemVarSemestre(t *testing.T) {
 }
 
 func TestMejorRemTotalSinRemVarAnual(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -456,7 +527,8 @@ func TestMejorRemTotalSinRemVarAnual(t *testing.T) {
 }
 
 func TestMejorRemTotalSemestre(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -471,7 +543,8 @@ func TestMejorRemTotalSemestre(t *testing.T) {
 }
 
 func TestMejorRemTotalAnual(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -486,7 +559,8 @@ func TestMejorRemTotalAnual(t *testing.T) {
 }
 
 func TestPromRemVariablesSemestre(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -498,10 +572,29 @@ func TestPromRemVariablesSemestre(t *testing.T) {
 		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionMayo2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionFebrero2020())
+
+	esperado = float64(15000)
+	respuesta = executor.PromRemVariablesSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionFebrero2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionEnero2020())
+
+	esperado = float64(20000)
+	respuesta = executor.PromRemVariablesSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionEnero2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
 }
 
 func TestPromRemVariablesAnual(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -516,7 +609,8 @@ func TestPromRemVariablesAnual(t *testing.T) {
 }
 
 func TestDiasSemTrabajados(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -541,7 +635,8 @@ func TestDiasSemTrabajados(t *testing.T) {
 }
 
 func TestDiasEfectivamenteTrabajadosSemestre(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -556,7 +651,8 @@ func TestDiasEfectivamenteTrabajadosSemestre(t *testing.T) {
 }
 
 func TestAntiguedadResto(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -571,7 +667,8 @@ func TestAntiguedadResto(t *testing.T) {
 }
 
 func TestFechaDeIngreso(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	esperado := time.Date(2019, 1, 14, 3, 0, 0, 0, time.UTC)
@@ -584,7 +681,8 @@ func TestFechaDeIngreso(t *testing.T) {
 }
 
 func TestFechadeLiquidacion(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionAntesDeAltaMismoMesTest() )
@@ -599,7 +697,8 @@ func TestFechadeLiquidacion(t *testing.T) {
 }
 
 func TestFecIngHASTAFecLiq(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionDespuesDeAltaTest() )
@@ -614,7 +713,8 @@ func TestFecIngHASTAFecLiq(t *testing.T) {
 }
 
 func TestMejorRemRemunerativaBaseSACSemestre(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -630,7 +730,8 @@ func TestMejorRemRemunerativaBaseSACSemestre(t *testing.T) {
 
 
 func TestDiasLicenciaMes(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -645,7 +746,8 @@ func TestDiasLicenciaMes(t *testing.T) {
 }
 
 func TestDiasLicenciaSemestre(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())

@@ -6,7 +6,8 @@ import (
 )
 
 func TestSac(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -21,7 +22,8 @@ func TestSac(t *testing.T) {
 }
 
 func TestSacNoRemunerativo(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -36,7 +38,8 @@ func TestSacNoRemunerativo(t *testing.T) {
 }
 
 func TestIntegracionMesDespido(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -50,7 +53,8 @@ func TestIntegracionMesDespido(t *testing.T) {
 }
 
 func TestSacSinImd(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -64,7 +68,8 @@ func TestSacSinImd(t *testing.T) {
 }
 
 func TestHoraExtra50(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
@@ -78,7 +83,8 @@ func TestHoraExtra50(t *testing.T) {
 }
 
 func TestPreaviso(t *testing.T) {
-
+	setupTest()
+	defer afterTest()
 	executor := getExecutorTest()
 
 	setFechaLiquidacion(&executor, getFechaLiquidacionEnero2019())
