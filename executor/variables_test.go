@@ -565,7 +565,7 @@ func TestPromRemVariablesSemestre(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := float64(10000)
+	esperado := float64(6000)
 	respuesta := executor.PromRemVariablesSemestre()
 
 	if respuesta != esperado {
@@ -588,6 +588,25 @@ func TestPromRemVariablesSemestre(t *testing.T) {
 
 	if respuesta != esperado {
 		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionEnero2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMarzo2020())
+
+	esperado = float64(10000)
+	respuesta = executor.PromRemVariablesSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionMarzo2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionAbril2020())
+
+	esperado = float64(7500)
+	respuesta = executor.PromRemVariablesSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion PromRemVariablesSemestre con getPeriodoLiquidacionMarzo2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
 }
