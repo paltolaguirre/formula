@@ -437,7 +437,7 @@ func (executor *Executor) obtenerLiquidacionesIgualAnioLegajoMenorOIgualMesMensu
 	liquidacion := executor.context.Currentliquidacion
 	anioperiodoliquidacion := liquidacion.Fechaperiodoliquidacion.Year()
 	mesliquidacion := liquidacion.Fechaperiodoliquidacion.Month()
-	executor.db.Order("to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') desc").Set("gorm:auto_preload", true).Find(&liquidaciones, "to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') < ? AND to_char(fechaperiodoliquidacion, 'YYYY') = ? AND legajoid = ? AND tipoid in (-1, -2, -3)", mesliquidacion, strconv.Itoa(anioperiodoliquidacion), *liquidacion.Legajoid)
+	executor.db.Order("to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') desc").Set("gorm:auto_preload", true).Find(&liquidaciones, "to_number(to_char(fechaperiodoliquidacion, 'MM'),'99') <= ? AND to_char(fechaperiodoliquidacion, 'YYYY') = ? AND legajoid = ? AND tipoid in (-1, -2, -3) and id != ?", mesliquidacion, strconv.Itoa(anioperiodoliquidacion), *liquidacion.Legajoid, liquidacion.ID)
 	if *liquidacion.Tipoid == -1 || *liquidacion.Tipoid == -2 || *liquidacion.Tipoid == -3 {
 		liquidaciones = append(liquidaciones, liquidacion)
 	}
