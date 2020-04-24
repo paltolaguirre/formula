@@ -346,6 +346,7 @@ func (executor *Executor) obtenerRemuneracionesVariables(liquidacion structLiqui
 	for i := 0; i < len(liquidacion.Liquidacionitems); i++ {
 		liquidacionitem := liquidacion.Liquidacionitems[i]
 		if liquidacionitem.DeletedAt == nil && *liquidacionitem.Conceptoid != executor.context.Currentconcepto.ID {
+			executor.db.Set("gorm:auto_preload", true).First(&liquidacionitem.Concepto, "id = ?", *liquidacionitem.Conceptoid)
 			if liquidacionitem.Concepto.Esremvariable {
 				if liquidacionitem.Importeunitario != importeNil {
 					importeCalculado = importeCalculado + *liquidacionitem.Importeunitario
