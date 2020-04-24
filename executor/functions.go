@@ -108,11 +108,11 @@ func (executor *Executor) Multi(val1 float64, val2 float64) float64 {
 
 /* FORMULAS DE XUBIO */
 func (executor *Executor) Jornal() float64 {
-	return executor.Sueldo() / 30
+	return math.Round(executor.Sueldo() / 30 * 100) / 100
 }
 
 func (executor *Executor) ValorHora() float64 {
-	return executor.Sueldo() / executor.HorasMensuales()
+	return math.Round(executor.Sueldo() / executor.HorasMensuales() * 100) / 100
 }
 
 func (executor *Executor) HoraExtra50() float64 {
