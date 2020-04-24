@@ -44,7 +44,7 @@ func TestIntegracionMesDespido(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := math.Round(386666.670000*100)/100
+	esperado := math.Round(386666.570000*100)/100
 	respuesta := executor.IntegracionMesDespido()
 
 	if respuesta != esperado {
@@ -59,7 +59,7 @@ func TestSacSinImd(t *testing.T) {
 
 	setFechaPeriodoLiquidacion(&executor, getPeriodoLiquidacionMayo2020())
 
-	esperado := math.Round(32222.220000*100)/100
+	esperado := math.Round(32222.210000*100)/100
 	respuesta := executor.SacSinImd()
 
 	if respuesta != esperado {
