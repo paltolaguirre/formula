@@ -32,7 +32,7 @@ func Healthy(writer http.ResponseWriter, request *http.Request) {
 
 func FunctionList(w http.ResponseWriter, r *http.Request) {
 
-	//var tipo = r.URL.Query()["type"]
+	var tipo = r.URL.Query()["type"]
 
 	tokenValido, tokenAutenticacion := apiclientautenticacion.CheckTokenValido(w, r)
 	if tokenValido {
@@ -44,11 +44,11 @@ func FunctionList(w http.ResponseWriter, r *http.Request) {
 
 		var functions []structFunction.Function
 
-		/*if tipo != nil {
+		if tipo != nil {
 			db.Set("gorm:auto_preload", true).Where("type = ?", tipo).Find(&functions)
-		} else {*/
-		db.Set("gorm:auto_preload", true).Find(&functions)
-		//}
+		} else {
+			db.Set("gorm:auto_preload", true).Find(&functions)
+		}
 
 		framework.RespondJSON(w, http.StatusOK, functions)
 	}
@@ -149,53 +149,42 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 		defer r.Body.Close()
 
-		functionName := formulaData.Name
+		tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
+		db := conexionBD.ObtenerDB(tenant)
 
-		if pFunctionName == functionName || functionName == "" {
+		defer conexionBD.CerrarDB(db)
 
-			formulaData.Name = pFunctionName
+		//abro una transacción para que si hay un error no persista en la DB
+		tx := db.Begin()
 
-			tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
-			db := conexionBD.ObtenerDB(tenant)
-
-			defer conexionBD.CerrarDB(db)
-
-			//abro una transacción para que si hay un error no persista en la DB
-			tx := db.Begin()
-
-			var formula structFunction.Function
-			//gorm:auto_preload se usa para que complete todos los struct con su informacion
-			if err := tx.Set("gorm:auto_preload", true).First(&formula, "name = ?", formulaData.Name).Error; gorm.IsRecordNotFoundError(err) {
-				framework.RespondError(w, http.StatusNotFound, err.Error())
-				return
-			}
-
-			err := createValue(formulaData.Value, tx)
-			if err != nil {
-				tx.Rollback()
-				framework.RespondError(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			if err := tx.Save(&formulaData).Error; err != nil {
-				tx.Rollback()
-				framework.RespondError(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			if err := deleteValue(formula.Value, tx); err != nil {
-				tx.Rollback()
-				framework.RespondError(w, http.StatusInternalServerError, err.Error())
-				return
-			}
-
-			tx.Commit()
-			framework.RespondJSON(w, http.StatusOK, formulaData)
-
-		} else {
-			framework.RespondError(w, http.StatusNotFound, framework.IdParametroDistintoStruct)
+		var formula structFunction.Function
+		//gorm:auto_preload se usa para que complete todos los struct con su informacion
+		if err := tx.Set("gorm:auto_preload", true).First(&formula, "name = ?", formulaData.Name).Error; gorm.IsRecordNotFoundError(err) {
+			framework.RespondError(w, http.StatusNotFound, err.Error())
 			return
 		}
+
+		err := createValue(formulaData.Value, tx)
+		if err != nil {
+			tx.Rollback()
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		if err := tx.Save(&formulaData).Error; err != nil {
+			tx.Rollback()
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		if err := deleteValue(formula.Value, tx); err != nil {
+			tx.Rollback()
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		tx.Commit()
+		framework.RespondJSON(w, http.StatusOK, formulaData)
 	}
 
 }

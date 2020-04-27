@@ -3,7 +3,9 @@ package executor
 import (
 	"errors"
 	"fmt"
+	"github.com/xubiosueldos/conexionBD/Concepto/structConcepto"
 	"reflect"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
@@ -18,6 +20,7 @@ type Executor struct {
 
 type Context struct {
 	Currentliquidacion structLiquidacion.Liquidacion `json:"currentliquidacion"`
+	Currentconcepto structConcepto.Concepto `json:"currentconcepto"`
 }
 
 func NewExecutor(db *gorm.DB, context *Context) *Executor {
@@ -117,6 +120,8 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 			value = valueResolved.Valuenumber
 		case "string":
 			value = valueResolved.Valuestring
+		case "bool":
+			value = valueResolved.Valueboolean
 			/*default:
 			jsonbody, err := json.Marshal(valueResolved.Valueobject)
 			if err != nil {
@@ -132,15 +137,17 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 	result = new(structFunction.Value)
 	if len(results) == 1 {
 		paramType := m.Type().Out(0).Name()
+		val := results[0]
 		switch paramType {
 		case "float64":
-			val := results[0]
 			result.Valuenumber = val.Float()
 		case "string":
-			result.Valuestring = results[0].String()
+			result.Valuestring = val.String()
 		case "bool":
-			val := results[0]
 			result.Valueboolean = val.Bool()
+		case "Time":
+			val := results[0]
+			result.Valuestring = val.Interface().(time.Time).Format("2006-01-02T00:00:00Z")
 		}
 
 		return result, nil
@@ -148,3 +155,4 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 
 	return result, nil
 }
+
