@@ -105,7 +105,8 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		defer conexionBD.CerrarDB(db)
 		//abro una transacción para que si hay un error no persista en la DB
 		tx := db.Begin()
-
+		defer tx.Rollback()
+		
 		/*err := createValue(functionData.Value, tx)
 		if err != nil {
 			tx.Rollback()
@@ -114,7 +115,6 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		}*/
 
 		if err := tx.Create(&functionData).Error; err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -171,15 +171,38 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := tx.Save(&formulaData).Error; err != nil {
-			tx.Rollback()
-			framework.RespondError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+			//abro una transacción para que si hay un error no persista en la DB
+			tx := db.Begin()
+			defer tx.Rollback()
 
-		if err := deleteValue(formula.Value, tx); err != nil {
-			tx.Rollback()
-			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			var formula structFunction.Function
+			//gorm:auto_preload se usa para que complete todos los struct con su informacion
+			if err := tx.Set("gorm:auto_preload", true).First(&formula, "name = ?", formulaData.Name).Error; gorm.IsRecordNotFoundError(err) {
+				framework.RespondError(w, http.StatusNotFound, err.Error())
+				return
+			}
+
+			err := createValue(formulaData.Value, tx)
+			if err != nil {
+				framework.RespondError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			if err := tx.Save(&formulaData).Error; err != nil {
+				framework.RespondError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			if err := deleteValue(formula.Value, tx); err != nil {
+				framework.RespondError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			tx.Commit()
+			framework.RespondJSON(w, http.StatusOK, formulaData)
+
+		} else {
+			framework.RespondError(w, http.StatusNotFound, framework.IdParametroDistintoStruct)
 			return
 		}
 
@@ -204,6 +227,7 @@ func FunctionRemove(w http.ResponseWriter, r *http.Request) {
 
 		//abro una transacción para que si hay un error no persista en la DB
 		tx := db.Begin()
+		defer tx.Rollback()
 
 		var function structFunction.Function
 		//gorm:auto_preload se usa para que complete todos los struct con su informacion
@@ -214,14 +238,12 @@ func FunctionRemove(w http.ResponseWriter, r *http.Request) {
 
 		//--Borrado Fisico
 		if err := tx.Unscoped().Where("name = ?", functionName).Delete(structFunction.Function{}).Error; err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		err := deleteValue(function.Value, tx)
 		if err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
