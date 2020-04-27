@@ -6,7 +6,7 @@ require (
 	github.com/gorilla/mux v1.7.2
 	github.com/jinzhu/gorm v1.9.8
 	github.com/jinzhu/now v1.0.0
-	github.com/xubiosueldos/autenticacion v0.0.0-20200305131427-b783dc519e1b
-	github.com/xubiosueldos/conexionBD v0.0.0-20200407173402-156545232f2e
+	github.com/xubiosueldos/autenticacion v0.0.0-20200427164815-51c5625f81f3
+	github.com/xubiosueldos/conexionBD v0.0.0-20200427152747-5df76e919467
 	github.com/xubiosueldos/framework v0.0.0-20200407153707-6c12f66cd487
 )
