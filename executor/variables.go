@@ -567,5 +567,5 @@ func (executor *Executor) DiasDelSemestre() float64 {
 		respuesta = now.New(periodoLiquidacion).EndOfYear().Sub(primerDiaDelSegundoSemestre).Hours() / 24
 	}
 
-	return math.Round(respuesta * 100) / 100
+	return math.Round(respuesta)
 }
