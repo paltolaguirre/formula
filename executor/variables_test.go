@@ -779,3 +779,48 @@ func TestDiasLicenciaSemestre(t *testing.T) {
 	}
 
 }
+
+func TestDiasDelSemestre(t *testing.T) {
+	setupTest()
+	defer afterTest()
+	executor := getExecutorTest()
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionJunio2020())
+
+	esperado := float64(182)
+	respuesta := executor.DiasDelSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion DiasLicenciaSemestre con getFechaLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+	setFechaLiquidacion(&executor, getFechaLiquidacionDiciembre2020())
+
+	esperado = float64(184)
+	respuesta = executor.DiasDelSemestre()
+
+	if respuesta != esperado {
+		t.Errorf("La funcion DiasLicenciaSemestre con getFechaLiquidacionDiciembre2020 devuelve %f y se esperaba %f", respuesta, esperado)
+	}
+
+}
+
+func getFechaLiquidacionJunio2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-06-13")
+
+	if err != nil {
+		fmt.Println("getFechaLiquidacionJunio2020 mal creado ", err)
+	}
+
+	return fecha
+}
+
+func getFechaLiquidacionDiciembre2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-12-13")
+
+	if err != nil {
+		fmt.Println("getFechaLiquidacionDiciembre2020 mal creado ", err)
+	}
+
+	return fecha
+}
