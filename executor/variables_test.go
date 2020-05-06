@@ -785,28 +785,28 @@ func TestDiasDelSemestre(t *testing.T) {
 	defer afterTest()
 	executor := getExecutorTest()
 
-	setFechaLiquidacion(&executor, getFechaLiquidacionJunio2020())
+	setFechaPeriodoLiquidacion(&executor, getsetFechaPeriodoLiquidacionJunio2020())
 
 	esperado := float64(182)
 	respuesta := executor.DiasDelSemestre()
 
 	if respuesta != esperado {
-		t.Errorf("La funcion DiasLicenciaSemestre con getFechaLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
+		t.Errorf("La funcion DiasLicenciaSemestre con getsetFechaPeriodoLiquidacionJunio2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
-	setFechaLiquidacion(&executor, getFechaLiquidacionDiciembre2020())
+	setFechaPeriodoLiquidacion(&executor, getsetFechaPeriodoLiquidacionDiciembre2020())
 
 	esperado = float64(184)
 	respuesta = executor.DiasDelSemestre()
 
 	if respuesta != esperado {
-		t.Errorf("La funcion DiasLicenciaSemestre con getFechaLiquidacionDiciembre2020 devuelve %f y se esperaba %f", respuesta, esperado)
+		t.Errorf("La funcion DiasLicenciaSemestre con getsetFechaPeriodoLiquidacionDiciembre2020 devuelve %f y se esperaba %f", respuesta, esperado)
 	}
 
 }
 
-func getFechaLiquidacionJunio2020() time.Time {
-	fecha, err := time.Parse("2006-01-02", "2020-06-13")
+func getsetFechaPeriodoLiquidacionJunio2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-06-01")
 
 	if err != nil {
 		fmt.Println("getFechaLiquidacionJunio2020 mal creado ", err)
@@ -815,8 +815,8 @@ func getFechaLiquidacionJunio2020() time.Time {
 	return fecha
 }
 
-func getFechaLiquidacionDiciembre2020() time.Time {
-	fecha, err := time.Parse("2006-01-02", "2020-12-13")
+func getsetFechaPeriodoLiquidacionDiciembre2020() time.Time {
+	fecha, err := time.Parse("2006-01-02", "2020-12-01")
 
 	if err != nil {
 		fmt.Println("getFechaLiquidacionDiciembre2020 mal creado ", err)
