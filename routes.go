@@ -78,4 +78,10 @@ var routes = Routes{
 		"/api/formula/execute",
 		FunctionExecute,
 	},
+	Route{
+		"FunctionAddPublic",
+		"POST",
+		"/api/formula/public/formulas",
+		FunctionAddPublic,
+	},
 }

@@ -8,5 +8,5 @@ require (
 	github.com/jinzhu/now v1.0.0
 	github.com/xubiosueldos/autenticacion v1.1.0
 	github.com/xubiosueldos/conexionBD v1.1.0
-	github.com/xubiosueldos/framework v1.1.0
+	github.com/xubiosueldos/framework v1.1.2
 )
