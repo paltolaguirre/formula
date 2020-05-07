@@ -553,8 +553,9 @@ func (executor *Executor) FecIngHASTAFecLiq() float64 {
 }
 
 func (executor *Executor) DiasDelSemestre() float64 {
-	primerDiaDelSegundoSemestre, err := time.Parse("2006-01-02", "2020-07-01")
 	periodoLiquidacion := executor.context.Currentliquidacion.Fechaperiodoliquidacion
+	primerDiaDelSegundoSemestre, err := time.Parse("2006-01-02",  string(periodoLiquidacion.Year()) + "-07-01")
+
 	var respuesta float64
 
 	if err != nil {
