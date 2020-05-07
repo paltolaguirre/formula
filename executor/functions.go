@@ -52,7 +52,11 @@ func (executor *Executor) Equality(val1 float64, val2 float64) bool {
 	return val1 == val2
 }
 
-func (executor *Executor) Inequality(val1 bool, val2 bool) bool {
+func (executor *Executor) Inequality(val1 float64, val2 float64) bool {
+	return val1 != val2
+}
+
+func (executor *Executor) BooleanInequality(val1 bool, val2 bool) bool {
 	return val1 != val2
 }
 
