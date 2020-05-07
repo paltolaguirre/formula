@@ -554,13 +554,9 @@ func (executor *Executor) FecIngHASTAFecLiq() float64 {
 
 func (executor *Executor) DiasDelSemestre() float64 {
 	periodoLiquidacion := executor.context.Currentliquidacion.Fechaperiodoliquidacion
-	primerDiaDelSegundoSemestre, err := time.Parse("2006-01-02",  string(periodoLiquidacion.Year()) + "-07-01")
+	primerDiaDelSegundoSemestre := time.Date(periodoLiquidacion.Year(), time.July, 1, 0, 0, 0, 0, time.UTC)
 
 	var respuesta float64
-
-	if err != nil {
-		fmt.Println("primerDiaDelSegundoSemestre mal creado ", err)
-	}
 
 	if periodoLiquidacion.Month() < time.July {
 		respuesta = primerDiaDelSegundoSemestre.Sub(now.New(periodoLiquidacion).BeginningOfYear()).Hours() / 24
