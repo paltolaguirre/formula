@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/xubiosueldos/framework/configuracion"
 	"net/http"
 
 	"git-codecommit.us-east-1.amazonaws.com/v1/repos/sueldos-formula/executor"
@@ -342,5 +343,42 @@ func FunctionExecute(w http.ResponseWriter, r *http.Request) {
 
 		framework.RespondJSON(w, http.StatusCreated, value)
 	}
+
+}
+
+func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
+
+	token := r.Header.Get("Authorization")
+
+	if token != "Bearer " + configuracion.GetInstance().Tokenformulapublic  {
+		framework.RespondError(w, http.StatusUnauthorized, "No está autorizado a utilizar esta funcion")
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+
+	var functionData structFunction.Function
+
+	if err := decoder.Decode(&functionData); err != nil {
+		framework.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	defer r.Body.Close()
+
+	dbPublic := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(dbPublic)
+
+	//abro una transacción para que si hay un error no persista en la DB
+	tx := dbPublic.Begin()
+	defer tx.Rollback()
+
+	if err := tx.Create(&functionData).Error; err != nil {
+		framework.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	tx.Commit()
+	framework.RespondJSON(w, http.StatusCreated, functionData)
 
 }
