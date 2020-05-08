@@ -13,6 +13,7 @@ import (
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"github.com/xubiosueldos/framework"
+	"unicode"
 )
 
 type IdsAEliminar struct {
@@ -94,6 +95,17 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		runeName := []rune(functionData.Name)
+
+		if !unicode.IsLetter(runeName[0]) {
+			framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+			return
+		}
+		if unicode.IsUpper(runeName[0]) {
+			runeName[0] = unicode.ToLower(runeName[0])
+			functionData.Name = string(runeName)
+		}
+
 		defer r.Body.Close()
 
 		/*res2B, _ := json.Marshal(functionData)
@@ -121,7 +133,7 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		}
 
 		tx.Commit()
-		framework.RespondJSON(w, http.StatusCreated, functionData)
+		framework.RespondJSON(w, http.StatusCreated,  )
 	}
 
 }
@@ -149,6 +161,17 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer r.Body.Close()
+
+		runeName := []rune(formulaData.Name)
+
+		if !unicode.IsLetter(runeName[0]) {
+			framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+			return
+		}
+		if unicode.IsUpper(runeName[0]) {
+			runeName[0] = unicode.ToLower(runeName[0])
+			formulaData.Name = string(runeName)
+		}
 
 		tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
 		db := conexionBD.ObtenerDB(tenant)
@@ -366,6 +389,17 @@ func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
+	runeName := []rune(functionData.Name)
+
+	if !unicode.IsLetter(runeName[0]) {
+		framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+		return
+	}
+	if unicode.IsLower(runeName[0]) {
+		runeName[0] = unicode.ToUpper(runeName[0])
+		functionData.Name = string(runeName)
+	}
+
 	dbPublic := conexionBD.ObtenerDB("public")
 	defer conexionBD.CerrarDB(dbPublic)
 
@@ -382,3 +416,5 @@ func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
 	framework.RespondJSON(w, http.StatusCreated, functionData)
 
 }
+
+
