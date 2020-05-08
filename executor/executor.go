@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/xubiosueldos/conexionBD/Concepto/structConcepto"
+	"math"
 	"reflect"
 	"time"
 
@@ -140,7 +141,7 @@ func (executor *Executor) call(function structFunction.Function, args []structFu
 		val := results[0]
 		switch paramType {
 		case "float64":
-			result.Valuenumber = val.Float()
+			result.Valuenumber = math.Round(val.Float() * 100) / 100
 		case "string":
 			result.Valuestring = val.String()
 		case "bool":
