@@ -133,7 +133,7 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		}
 
 		tx.Commit()
-		framework.RespondJSON(w, http.StatusCreated,  )
+		framework.RespondJSON(w, http.StatusCreated, functionData)
 	}
 
 }
