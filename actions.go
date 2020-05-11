@@ -422,18 +422,21 @@ func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
 		//--Borrado Fisico
 		if err := tx.Unscoped().Where("name = ?", functionData.Name).Delete(structFunction.Function{}).Error; err != nil {
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			tx.Rollback()
 			return
 		}
 
 		err := deleteValue(function.Value, tx)
 		if err != nil {
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			tx.Rollback()
 			return
 		}
 	}
 
 	if err := tx.Create(&functionData).Error; err != nil {
 		framework.RespondError(w, http.StatusInternalServerError, err.Error())
+		tx.Rollback()
 		return
 	}
 
