@@ -403,9 +403,34 @@ func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
 	dbPublic := conexionBD.ObtenerDB("public")
 	defer conexionBD.CerrarDB(dbPublic)
 
+	var function structFunction.Function
+	existeFuncion := true
+	//Busco si existe
+	if err := dbPublic.Set("gorm:auto_preload", true).First(&function, "name = ?", functionData.Name).Error; gorm.IsRecordNotFoundError(err) {
+		existeFuncion = false;
+	}
+
 	//abro una transacción para que si hay un error no persista en la DB
 	tx := dbPublic.Begin()
-	defer tx.Rollback()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if existeFuncion {
+		//--Borrado Fisico
+		if err := tx.Unscoped().Where("name = ?", functionData.Name).Delete(structFunction.Function{}).Error; err != nil {
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		err := deleteValue(function.Value, tx)
+		if err != nil {
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
 
 	if err := tx.Create(&functionData).Error; err != nil {
 		framework.RespondError(w, http.StatusInternalServerError, err.Error())
