@@ -29,14 +29,15 @@ func (executor *Executor) GetParamValue(paramName string) float64 {
 
 func (executor *Executor) GetConceptValue(id float64) float64 {
 	liquidacion := executor.context.Currentliquidacion
+	var acumulador float64 = 0
 
 	for _, item := range liquidacion.Liquidacionitems {
-		if item.Concepto.ID == int(id) {
-			return *item.Importeunitario
+		if item.Concepto.ID == int(id) && item.Importeunitario != nil {
+			acumulador += *item.Importeunitario
 		}
 	}
 
-	return 0
+	return acumulador
 }
 
 func (executor *Executor) If(expression bool, valueTrue float64, valueFalse float64) float64 {
