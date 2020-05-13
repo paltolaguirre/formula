@@ -551,3 +551,18 @@ func (executor *Executor) FechadeLiquidacion() time.Time {
 func (executor *Executor) FecIngHASTAFecLiq() float64 {
 	return math.Round(((executor.FechadeLiquidacion().Sub(executor.FechaDeIngreso()).Hours() / 24) / 365) * 100 ) / 100
 }
+
+func (executor *Executor) DiasDelSemestre() float64 {
+	periodoLiquidacion := executor.context.Currentliquidacion.Fechaperiodoliquidacion
+	primerDiaDelSegundoSemestre := time.Date(periodoLiquidacion.Year(), time.July, 1, 0, 0, 0, 0, time.UTC)
+
+	var respuesta float64
+
+	if periodoLiquidacion.Month() < time.July {
+		respuesta = primerDiaDelSegundoSemestre.Sub(now.New(periodoLiquidacion).BeginningOfYear()).Hours() / 24
+	} else {
+		respuesta = now.New(periodoLiquidacion).EndOfYear().Sub(primerDiaDelSegundoSemestre).Hours() / 24
+	}
+
+	return math.Round(respuesta)
+}

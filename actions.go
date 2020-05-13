@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/xubiosueldos/framework/configuracion"
 	"net/http"
 
 	"git-codecommit.us-east-1.amazonaws.com/v1/repos/sueldos-formula/executor"
@@ -12,6 +13,7 @@ import (
 	"github.com/xubiosueldos/conexionBD"
 	"github.com/xubiosueldos/conexionBD/Function/structFunction"
 	"github.com/xubiosueldos/framework"
+	"unicode"
 )
 
 type IdsAEliminar struct {
@@ -93,6 +95,17 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		runeName := []rune(functionData.Name)
+
+		if !unicode.IsLetter(runeName[0]) {
+			framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+			return
+		}
+		if unicode.IsUpper(runeName[0]) {
+			runeName[0] = unicode.ToLower(runeName[0])
+			functionData.Name = string(runeName)
+		}
+
 		defer r.Body.Close()
 
 		/*res2B, _ := json.Marshal(functionData)
@@ -105,7 +118,8 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		defer conexionBD.CerrarDB(db)
 		//abro una transacción para que si hay un error no persista en la DB
 		tx := db.Begin()
-
+		defer tx.Rollback()
+		
 		/*err := createValue(functionData.Value, tx)
 		if err != nil {
 			tx.Rollback()
@@ -114,7 +128,6 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		}*/
 
 		if err := tx.Create(&functionData).Error; err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -149,6 +162,17 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 		defer r.Body.Close()
 
+		runeName := []rune(formulaData.Name)
+
+		if !unicode.IsLetter(runeName[0]) {
+			framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+			return
+		}
+		if unicode.IsUpper(runeName[0]) {
+			runeName[0] = unicode.ToLower(runeName[0])
+			formulaData.Name = string(runeName)
+		}
+
 		tenant := apiclientautenticacion.ObtenerTenant(tokenAutenticacion)
 		db := conexionBD.ObtenerDB(tenant)
 
@@ -156,6 +180,7 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 
 		//abro una transacción para que si hay un error no persista en la DB
 		tx := db.Begin()
+		defer tx.Rollback()
 
 		var formula structFunction.Function
 		//gorm:auto_preload se usa para que complete todos los struct con su informacion
@@ -166,25 +191,26 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 
 		err := createValue(formulaData.Value, tx)
 		if err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		if err := tx.Save(&formulaData).Error; err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		if err := deleteValue(formula.Value, tx); err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		tx.Commit()
 		framework.RespondJSON(w, http.StatusOK, formulaData)
+
+	} else {
+		framework.RespondError(w, http.StatusNotFound, framework.IdParametroDistintoStruct)
+		return
 	}
 
 }
@@ -204,6 +230,7 @@ func FunctionRemove(w http.ResponseWriter, r *http.Request) {
 
 		//abro una transacción para que si hay un error no persista en la DB
 		tx := db.Begin()
+		defer tx.Rollback()
 
 		var function structFunction.Function
 		//gorm:auto_preload se usa para que complete todos los struct con su informacion
@@ -214,14 +241,12 @@ func FunctionRemove(w http.ResponseWriter, r *http.Request) {
 
 		//--Borrado Fisico
 		if err := tx.Unscoped().Where("name = ?", functionName).Delete(structFunction.Function{}).Error; err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		err := deleteValue(function.Value, tx)
 		if err != nil {
-			tx.Rollback()
 			framework.RespondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -343,3 +368,81 @@ func FunctionExecute(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
+
+	token := r.Header.Get("Authorization")
+
+	if token != "Bearer " + configuracion.GetInstance().Tokenformulapublic  {
+		framework.RespondError(w, http.StatusUnauthorized, "No está autorizado a utilizar esta funcion")
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+
+	var functionData structFunction.Function
+
+	if err := decoder.Decode(&functionData); err != nil {
+		framework.RespondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	defer r.Body.Close()
+
+	runeName := []rune(functionData.Name)
+
+	if !unicode.IsLetter(runeName[0]) {
+		framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+		return
+	}
+	if unicode.IsLower(runeName[0]) {
+		runeName[0] = unicode.ToUpper(runeName[0])
+		functionData.Name = string(runeName)
+	}
+
+	dbPublic := conexionBD.ObtenerDB("public")
+	defer conexionBD.CerrarDB(dbPublic)
+
+	var function structFunction.Function
+	existeFuncion := true
+	//Busco si existe
+	if err := dbPublic.Set("gorm:auto_preload", true).First(&function, "name = ?", functionData.Name).Error; gorm.IsRecordNotFoundError(err) {
+		existeFuncion = false;
+	}
+
+	//abro una transacción para que si hay un error no persista en la DB
+	tx := dbPublic.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if existeFuncion {
+		//--Borrado Fisico
+		if err := tx.Unscoped().Where("name = ?", functionData.Name).Delete(structFunction.Function{}).Error; err != nil {
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			tx.Rollback()
+			return
+		}
+
+		err := deleteValue(function.Value, tx)
+		if err != nil {
+			framework.RespondError(w, http.StatusInternalServerError, err.Error())
+			tx.Rollback()
+			return
+		}
+	}
+
+	if err := tx.Create(&functionData).Error; err != nil {
+		framework.RespondError(w, http.StatusInternalServerError, err.Error())
+		tx.Rollback()
+		return
+	}
+
+	tx.Commit()
+	framework.RespondJSON(w, http.StatusCreated, functionData)
+
+}
+
+
