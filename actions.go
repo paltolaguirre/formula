@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/xubiosueldos/conexionBD/Function/automigrateFunction"
 	"github.com/xubiosueldos/framework/configuracion"
 	"net/http"
 
@@ -389,58 +390,12 @@ func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	runeName := []rune(functionData.Name)
+	err := automigrateFunction.SavePublicFunction(functionData)
 
-	if !unicode.IsLetter(runeName[0]) {
-		framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
-		return
-	}
-	if unicode.IsLower(runeName[0]) {
-		runeName[0] = unicode.ToUpper(runeName[0])
-		functionData.Name = string(runeName)
+	if err != nil {
+		framework.RespondError(w, http.StatusBadRequest, err.Error())
 	}
 
-	dbPublic := conexionBD.ObtenerDB("public")
-	defer conexionBD.CerrarDB(dbPublic)
-
-	var function structFunction.Function
-	existeFuncion := true
-	//Busco si existe
-	if err := dbPublic.Set("gorm:auto_preload", true).First(&function, "name = ?", functionData.Name).Error; gorm.IsRecordNotFoundError(err) {
-		existeFuncion = false;
-	}
-
-	//abro una transacción para que si hay un error no persista en la DB
-	tx := dbPublic.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if existeFuncion {
-		//--Borrado Fisico
-		if err := tx.Unscoped().Where("name = ?", functionData.Name).Delete(structFunction.Function{}).Error; err != nil {
-			framework.RespondError(w, http.StatusInternalServerError, err.Error())
-			tx.Rollback()
-			return
-		}
-
-		err := deleteValue(function.Value, tx)
-		if err != nil {
-			framework.RespondError(w, http.StatusInternalServerError, err.Error())
-			tx.Rollback()
-			return
-		}
-	}
-
-	if err := tx.Create(&functionData).Error; err != nil {
-		framework.RespondError(w, http.StatusInternalServerError, err.Error())
-		tx.Rollback()
-		return
-	}
-
-	tx.Commit()
 	framework.RespondJSON(w, http.StatusCreated, functionData)
 
 }
