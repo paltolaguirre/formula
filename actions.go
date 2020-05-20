@@ -98,8 +98,15 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 
 		runeName := []rune(functionData.Name)
 
+		for _, actualRune := range runeName {
+			if actualRune == ' ' {
+				framework.RespondError(w, http.StatusBadRequest, "Los nombres de las formulas no deben contener espacios")
+				return
+			}
+		}
+
 		if !unicode.IsLetter(runeName[0]) {
-			framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+			framework.RespondError(w, http.StatusBadRequest, "Los nombres de las formulas deben empezar con una letra")
 			return
 		}
 		if unicode.IsUpper(runeName[0]) {
@@ -165,8 +172,15 @@ func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
 
 		runeName := []rune(formulaData.Name)
 
+		for _, actualRune := range runeName {
+			if actualRune == ' ' {
+				framework.RespondError(w, http.StatusBadRequest, "Los nombres de las formulas no deben contener espacios")
+				return
+			}
+		}
+
 		if !unicode.IsLetter(runeName[0]) {
-			framework.RespondError(w, http.StatusBadRequest, "Las formulas deben empezar con una letra")
+			framework.RespondError(w, http.StatusBadRequest, "Los nombres de las formulas deben empezar con una letra")
 			return
 		}
 		if unicode.IsUpper(runeName[0]) {
