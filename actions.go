@@ -124,10 +124,16 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		db := conexionBD.ObtenerDB(tenant)
 
 		defer conexionBD.CerrarDB(db)
+
+		if existeFormula(functionData.Name, db) {
+			framework.RespondError(w, http.StatusBadRequest, "Ya existe una formula guardada con ese nombre")
+			return
+		}
+
 		//abro una transacción para que si hay un error no persista en la DB
 		tx := db.Begin()
 		defer tx.Rollback()
-		
+
 		/*err := createValue(functionData.Value, tx)
 		if err != nil {
 			tx.Rollback()
@@ -144,6 +150,14 @@ func FunctionAdd(w http.ResponseWriter, r *http.Request) {
 		framework.RespondJSON(w, http.StatusCreated, functionData)
 	}
 
+}
+
+func existeFormula(name string, db *gorm.DB) bool {
+	var formula structFunction.Function
+	if err := db.Set("gorm:auto_preload", true).First(&formula, "name ilike ?", name).Error; gorm.IsRecordNotFoundError(err) {
+		return false
+	}
+	return true
 }
 
 func FunctionUpdate(w http.ResponseWriter, r *http.Request) {
@@ -388,7 +402,7 @@ func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("Authorization")
 
-	if token != "Bearer " + configuracion.GetInstance().Tokenformulapublic  {
+	if token != "Bearer "+configuracion.GetInstance().Tokenformulapublic {
 		framework.RespondError(w, http.StatusUnauthorized, "No está autorizado a utilizar esta funcion")
 		return
 	}
@@ -413,5 +427,3 @@ func FunctionAddPublic(w http.ResponseWriter, r *http.Request) {
 	framework.RespondJSON(w, http.StatusCreated, functionData)
 
 }
-
-
