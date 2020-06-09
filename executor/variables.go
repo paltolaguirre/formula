@@ -12,6 +12,17 @@ import (
 	"github.com/xubiosueldos/conexionBD/Liquidacion/structLiquidacion"
 )
 
+func (executor *Executor) CantidadConcepto() float64 {
+
+	cantidad := executor.context.Currentliquidacionitem.Cantidad
+
+	if cantidad == 0 {
+		return 1
+	}
+
+	return cantidad
+}
+
 func (executor *Executor) TotalImporteRemunerativo() float64 {
 
 	return executor.calcularImporteSegunTipoConcepto(executor.context.Currentliquidacion, "IMPORTE_REMUNERATIVO", false, false)
